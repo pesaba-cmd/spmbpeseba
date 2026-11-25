@@ -1,0 +1,3122 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <meta name="theme-color" content="#4F46E5" />
+  <meta name="description" content="Sistem Penerimaan Murid Baru (SPMB) Online Terpadu dengan Pelacakan Tiket & Notifikasi WhatsApp" />
+  <title>SPMB Online Terpadu — Portal Penerimaan Murid Baru</title>
+
+  <!-- PWA Manifest via Data URI (1-File Self-Contained) -->
+  <link rel="manifest" href="data:application/manifest+json;charset=utf-8,%7B%22name%22%3A%22SPMB%20Online%20Terpadu%22%2C%22short_name%22%3A%22SPMB%20Online%22%2C%22start_url%22%3A%22.%2F%22%2C%22display%22%3A%22standalone%22%2C%22background_color%22%3A%22%23F8FAFC%22%2C%22theme_color%22%3A%22%234F46E5%22%2C%22icons%22%3A%5B%7B%22src%22%3A%22data%3Aimage%2Fsvg%2Bxml%3Butf8%2C%3Csvg%20xmlns%3D%27http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%27%20viewBox%3D%270%200%20192%20192%27%3E%3Crect%20width%3D%27192%27%20height%3D%27192%27%20rx%3D%2742%27%20fill%3D%27%234F46E5%27%2F%3E%3Cpath%20d%3D%27M96%2044L36%2074l60%2030%2060-30-60-30zm-42%2047v33c0%2014%2019%2024%2042%2024s42-10%2042-24V91l-42%2021-42-21z%27%20fill%3D%27%23ffffff%27%2F%3E%3C%2Fsvg%3E%22%2C%22sizes%22%3A%22192x192%22%2C%22type%22%3A%22image%2Fsvg%2Bxml%22%7D%5D%7D" />
+
+  <!-- Google Fonts: Plus Jakarta Sans & Inter -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@600;700;800&display=swap" rel="stylesheet" />
+
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', 'sans-serif'],
+            display: ['Plus Jakarta Sans', 'sans-serif'],
+          },
+          boxShadow: {
+            'glass': '0 10px 30px -5px rgba(79, 70, 229, 0.08), 0 4px 12px -2px rgba(15, 23, 42, 0.04)',
+            'float': '0 20px 40px -12px rgba(15, 23, 42, 0.16)',
+          }
+        }
+      }
+    };
+  </script>
+
+  <style>
+    /* Reset & Full-Page Blogger Override */
+    html, body {
+      margin: 0 !important;
+      padding: 0 !important;
+      background-color: #F8FAFC !important;
+      color: #0F172A;
+      font-family: 'Inter', sans-serif;
+      -webkit-tap-highlight-color: transparent;
+      overflow-x: hidden;
+    }
+
+    /* Sembunyikan elemen bawaan Blogger jika disematkan di Widget HTML */
+    .blogger-gear, .widget-item-control, #navbar-iframe, .status-msg-wrap {
+      display: none !important;
+    }
+
+    #spmb-root {
+      min-height: 100vh;
+      width: 100%;
+      position: relative;
+      z-index: 9990;
+      background:
+        radial-gradient(circle at 12% 8%, rgba(99, 102, 241, 0.09) 0%, transparent 36%),
+        radial-gradient(circle at 88% 14%, rgba(14, 165, 233, 0.09) 0%, transparent 38%),
+        radial-gradient(circle at 50% 92%, rgba(16, 185, 129, 0.07) 0%, transparent 42%),
+        #F8FAFC;
+    }
+
+    .font-display {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+    }
+
+    .glass-card {
+      background: rgba(255, 255, 255, 0.88);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+      border: 1px solid rgba(226, 232, 240, 0.9);
+    }
+
+    .glass-nav {
+      background: rgba(255, 255, 255, 0.92);
+      backdrop-filter: blur(18px);
+      -webkit-backdrop-filter: blur(18px);
+    }
+
+    /* Custom Scrollbar */
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #F1F5F9;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #CBD5E1;
+      border-radius: 999px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #94A3B8;
+    }
+
+    /* Print Styles untuk Kartu Bukti Pendaftaran Digital */
+    @media print {
+      body * {
+        visibility: hidden !important;
+      }
+      #printable-card-area, #printable-card-area * {
+        visibility: visible !important;
+      }
+      #printable-card-area {
+        position: fixed !important;
+        left: 0 !important;
+        top: 0 !important;
+        width: 100% !important;
+        margin: 0 !important;
+        padding: 20px !important;
+        box-shadow: none !important;
+        border: 2px solid #CBD5E1 !important;
+        background: #FFFFFF !important;
+      }
+      .no-print {
+        display: none !important;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div id="spmb-root" class="flex flex-col md:flex-row min-h-screen">
+    <!-- Toast Container -->
+    <div id="toast-container" class="fixed top-4 right-4 z-[10050] flex flex-col gap-2.5 max-w-sm w-[calc(100%-2rem)] pointer-events-none"></div>
+
+    <!-- Modal Container -->
+    <div id="modal-container" class="fixed inset-0 z-[10040] hidden items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm"></div>
+
+    <!-- DESKTOP FIXED SIDEBAR (Hidden on Mobile) -->
+    <aside id="desktop-sidebar" class="hidden md:flex md:flex-col md:w-72 md:fixed md:inset-y-0 md:left-0 glass-nav border-r border-slate-200/80 z-30 shadow-glass">
+      <!-- Brand Header -->
+      <div class="p-5 border-b border-slate-100">
+        <div class="flex items-center gap-3.5">
+          <div id="sidebar-logo-box" class="w-12 h-12 rounded-2xl bg-gradient-to-br from-indigo-600 via-blue-600 to-sky-500 flex items-center justify-center text-white shadow-md shrink-0 overflow-hidden">
+            <!-- Dynamic School Logo or Default Colorful Icon -->
+          </div>
+          <div class="min-w-0 flex-1">
+            <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-indigo-50 text-indigo-700 border border-indigo-100">
+              SPMB <span id="sidebar-tahun-ajaran" class="ml-1">2026/2027</span>
+            </span>
+            <h1 id="sidebar-school-name" class="font-display font-extrabold text-slate-900 text-sm leading-snug truncate mt-1">
+              SPMB Online Terpadu
+            </h1>
+            <p id="sidebar-school-npsn" class="text-[11px] text-slate-500 truncate">Portal Resmi Pendaftaran</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Mini Live Countdown Widget in Sidebar -->
+      <div class="px-4 pt-4">
+        <div id="sidebar-countdown-box" class="rounded-2xl p-3.5 bg-gradient-to-br from-indigo-600 to-sky-500 text-white shadow-md">
+          <div class="flex items-center justify-between text-[11px] font-semibold opacity-90 mb-1">
+            <span id="sidebar-cd-label">Batas Pendaftaran</span>
+            <span id="sidebar-cd-badge" class="px-1.5 py-0.5 rounded bg-white/20 text-[10px] font-bold">AKTIF</span>
+          </div>
+          <div id="sidebar-cd-timer" class="font-display font-extrabold text-base tracking-tight">
+            --h : --j : --m : --d
+          </div>
+        </div>
+      </div>
+
+      <!-- Navigation Links -->
+      <nav id="desktop-nav-list" class="flex-1 overflow-y-auto px-3.5 py-4 space-y-1.5">
+        <!-- Rendered dynamically by JS -->
+      </nav>
+
+      <!-- Sidebar Footer: Role Status & Admin Access -->
+      <div class="p-4 border-t border-slate-100 bg-slate-50/70">
+        <div id="sidebar-auth-footer">
+          <!-- Rendered dynamically by JS -->
+        </div>
+      </div>
+    </aside>
+
+    <!-- MOBILE TOP HEADER (Hidden on Desktop) -->
+    <header class="md:hidden sticky top-0 z-30 glass-nav border-b border-slate-200/80 px-4 py-3 flex items-center justify-between gap-2">
+      <div class="flex items-center gap-2.5 min-w-0">
+        <div id="mobile-logo-box" class="w-10 h-10 rounded-xl bg-gradient-to-br from-indigo-600 to-sky-500 flex items-center justify-center text-white shadow-sm shrink-0 overflow-hidden">
+        </div>
+        <div class="min-w-0">
+          <h1 id="mobile-school-name" class="font-display font-extrabold text-slate-900 text-sm truncate">SPMB Online</h1>
+          <div class="flex items-center gap-1.5">
+            <span id="mobile-cd-pill" class="text-[10px] font-bold text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded-full truncate">
+              Memuat jadwal...
+            </span>
+          </div>
+        </div>
+      </div>
+      <div id="mobile-header-action" class="shrink-0">
+        <!-- Quick Admin / Role Button -->
+      </div>
+    </header>
+
+    <!-- MAIN CONTENT AREA -->
+    <main class="flex-1 md:pl-72 pb-28 md:pb-10">
+      <!-- Preview Mode Banner (Strictly rendered ONLY when IS_PREVIEW === true) -->
+      <div id="preview-banner-slot"></div>
+
+      <!-- Dynamic View Container -->
+      <div id="app-view" class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 pt-5 md:pt-7">
+        <!-- Rendered dynamically by JS -->
+      </div>
+    </main>
+
+    <!-- MOBILE FLOATING BOTTOM NAVIGATION BAR (Hidden on Desktop) -->
+    <nav class="md:hidden fixed bottom-3 inset-x-3 z-40 glass-nav border border-slate-200/90 rounded-2xl shadow-float px-1.5 py-1.5">
+      <div id="mobile-bottom-nav" class="grid grid-cols-5 gap-1 items-center">
+        <!-- Rendered dynamically by JS -->
+      </div>
+    </nav>
+  </div>
+
+  <!-- MAIN APPLICATION SCRIPT (ES MODULE) -->
+  <script type="module">
+    // =========================================================================
+    // 1. KONFIGURASI SAKLAR MODE & FIREBASE CONFIG
+    // =========================================================================
+    const IS_PREVIEW = true; // Ubah menjadi false SAAT DEPLOY / PUBLISH agar terhubung murni ke Firebase tanpa data dummy
+
+    // PASTE FIREBASE CONFIG ANDA DI SINI
+    const firebaseConfig = {
+      apiKey: "API_KEY_ANDA",
+      authDomain: "PROJECT_ID.firebaseapp.com",
+      projectId: "PROJECT_ID",
+      storageBucket: "PROJECT_ID.appspot.com",
+      messagingSenderId: "SENDER_ID",
+      appId: "APP_ID"
+    };
+
+    // =========================================================================
+    // 2. IMPORT FIREBASE SDK (Modular v10 via CDN)
+    // =========================================================================
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+    import {
+      getAuth,
+      signInWithEmailAndPassword,
+      signOut,
+      onAuthStateChanged
+    } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+    import {
+      getFirestore,
+      collection,
+      doc,
+      getDoc,
+      getDocs,
+      setDoc,
+      updateDoc,
+      addDoc,
+      query,
+      where,
+      orderBy,
+      onSnapshot
+    } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+    // =========================================================================
+    // 3. REGISTRASI SERVICE WORKER PWA DINAMIS VIA BLOB (1-FILE PWA)
+    // =========================================================================
+    function initPwaServiceWorker() {
+      if ("serviceWorker" in navigator) {
+        try {
+          const swCode = `
+            const CACHE_NAME = 'spmb-online-pwa-v1';
+            self.addEventListener('install', (event) => {
+              self.skipWaiting();
+            });
+            self.addEventListener('activate', (event) => {
+              event.waitUntil(clients.claim());
+            });
+            self.addEventListener('fetch', (event) => {
+              if (event.request.method !== 'GET') return;
+              event.respondWith(
+                fetch(event.request).catch(() => caches.match(event.request))
+              );
+            });
+          `;
+          const blob = new Blob([swCode], { type: "application/javascript" });
+          const swUrl = URL.createObjectURL(blob);
+          navigator.serviceWorker.register(swUrl).catch(() => {
+            // Abaikan secara halus pada lingkungan preview sandboxed iframe
+          });
+        } catch (err) {
+          // Safe fallback
+        }
+      }
+    }
+    initPwaServiceWorker();
+
+    // =========================================================================
+    // 4. IKON VEKTOR PENUH WARNA (SVG LIBRARY)
+    // =========================================================================
+    const ICONS = {
+      school: `<svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 14l9-5-9-5-9 5 9 5z"/><path stroke-linecap="round" stroke-linejoin="round" d="M12 14l6.16-3.422a12.083 12.083 0 01.665 6.479A11.952 11.952 0 0012 20.055a11.952 11.952 0 00-6.824-2.998 12.078 12.078 0 01.665-6.479L12 14z"/></svg>`,
+      home: `<svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>`,
+      form: `<svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>`,
+      ticket: `<svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 5v2m0 4v2m0 4v2M5 5a2 2 0 00-2 2v3a2 2 0 110 4v3a2 2 0 002 2h14a2 2 0 002-2v-3a2 2 0 110-4V7a2 2 0 00-2-2H5z"/></svg>`,
+      student: `<svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>`,
+      dashboard: `<svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"/></svg>`,
+      verify: `<svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>`,
+      settings: `<svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>`,
+      whatsapp: `<svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M12.031 6.172c-3.181 0-5.767 2.586-5.768 5.766-.001 1.298.38 2.27 1.019 3.287l-.582 2.128 2.182-.573c.978.58 1.911.928 3.145.929 3.178 0 5.767-2.587 5.768-5.766.001-3.187-2.575-5.77-5.764-5.771zm3.392 8.244c-.144.405-.837.774-1.17.824-.299.045-.677.063-1.092-.069-.252-.08-.575-.187-.988-.365-1.739-.751-2.874-2.502-2.961-2.617-.087-.116-.708-.94-.708-1.793s.448-1.273.607-1.446c.159-.173.346-.217.462-.217l.332.006c.106.005.249-.04.39.298.144.347.491 1.2.534 1.287.043.087.072.188.014.304-.058.116-.087.188-.173.289l-.26.304c-.087.086-.177.18-.076.354.101.174.449.741.964 1.201.662.591 1.221.774 1.394.86s.274.072.376-.043c.101-.116.433-.506.549-.68.116-.173.231-.145.39-.087s1.011.477 1.184.564.289.13.332.202c.045.072.045.419-.1.824z"/></svg>`,
+      clock: `<svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>`,
+      lock: `<svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>`,
+      upload: `<svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/></svg>`,
+      print: `<svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/></svg>`,
+      copy: `<svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>`,
+      search: `<svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>`,
+      shield: `<svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>`,
+      logout: `<svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>`,
+      sparkles: `<svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z"/></svg>`,
+      users: `<svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>`
+    };
+
+    // =========================================================================
+    // 5. STATE APLIKASI & DATA DUMMY TERISOLASI (STRICT IS_PREVIEW GUARD)
+    // =========================================================================
+    const DEFAULT_EMPTY_CONFIG = {
+      logoSekolah: "",
+      namaSekolah: "Sekolah Belum Dikonfigurasi",
+      npsn: "-",
+      tagline: "Portal Sistem Penerimaan Murid Baru Online Terpadu",
+      alamatSekolah: "-",
+      kontakPanitia: "",
+      namaKetuaPanitia: "Ketua Panitia SPMB",
+      nipKetuaPanitia: "-",
+      tahunAjaran: "2026/2027",
+      statusBuka: true,
+      deadlinePendaftaran: "",
+      pesanTutup: "Masa pendaftaran SPMB Online telah berakhir sesuai jadwal yang ditetapkan. Silakan pantau hasil seleksi melalui menu Lacak Tiket.",
+      kuotaZonasi: 0,
+      kuotaPrestasi: 0,
+      kuotaAfirmasi: 0,
+      kuotaMutasi: 0,
+      waGatewayEndpoint: "",
+      waApiToken: "",
+      templateWaDaftar: "Halo *{nama}*, pendaftaran SPMB Online di *{sekolah}* berhasil dicatat!\n\nNomor Tiket: *{tiket}*\nPIN Portal: *{pin}*\nJalur: {jalur}\n\nSimpan tiket & PIN ini untuk melacak status seleksi Anda.",
+      templateWaUpdate: "Halo *{nama}* ({tiket}), status pendaftaran SPMB Anda di *{sekolah}* telah diperbarui menjadi: *{status}*.\n\nCatatan Panitia: {catatan}\n\nCek detail melalui menu Lacak Tiket."
+    };
+
+    // Data dummy HANYA dimuat di memori apabila IS_PREVIEW === true (maksimal 2 per koleksi)
+    function createPreviewSeedState() {
+      const futureDeadline = new Date(Date.now() + 4 * 24 * 60 * 60 * 1000 + 6 * 3600 * 1000).toISOString();
+      return {
+        config: {
+          logoSekolah: "",
+          namaSekolah: "SMA Negeri 1 Nusantara Unggul",
+          npsn: "20268899",
+          tagline: "Mencetak Generasi Cerdas, Berkarakter & Berdaya Saing Global",
+          alamatSekolah: "Jl. Pendidikan Merdeka No. 45, Kota Nusantara",
+          kontakPanitia: "6281234567890",
+          namaKetuaPanitia: "Drs. H. Ahmad Fauzi, M.Pd.",
+          nipKetuaPanitia: "19750412 200003 1 004",
+          tahunAjaran: "2026/2027",
+          statusBuka: true,
+          deadlinePendaftaran: futureDeadline,
+          pesanTutup: "Pendaftaran SPMB Tahun Ajaran 2026/2027 telah ditutup otomatis karena melewati batas waktu pendaftaran. Terima kasih atas partisipasi Anda.",
+          kuotaZonasi: 120,
+          kuotaPrestasi: 60,
+          kuotaAfirmasi: 40,
+          kuotaMutasi: 20,
+          waGatewayEndpoint: "",
+          waApiToken: "",
+          templateWaDaftar: "Halo *{nama}*, pendaftaran SPMB Online di *{sekolah}* berhasil dicatat!\n\nNomor Tiket: *{tiket}*\nPIN Portal: *{pin}*\nJalur: {jalur}\n\nSimpan tiket & PIN ini untuk melacak status seleksi Anda.",
+          templateWaUpdate: "Halo *{nama}* ({tiket}), status pendaftaran SPMB Anda di *{sekolah}* telah diperbarui menjadi: *{status}*.\n\nCatatan Panitia: {catatan}\n\nCek detail melalui menu Lacak Tiket."
+        },
+        pendaftar: [
+          {
+            ticketId: "SPMB-2026-001",
+            pin: "123456",
+            namaLengkap: "Alya Putri Ramadhani",
+            nisn: "0091234567",
+            jenisKelamin: "Perempuan",
+            tempatTanggalLahir: "Bandung, 14 Mei 2011",
+            asalSekolah: "SMP Negeri 2 Nusantara",
+            jalurPendaftaran: "Prestasi",
+            pilihanJurusan: "MIPA / Sains Terapan",
+            namaWali: "Budi Santoso",
+            noWhatsapp: "6281298765432",
+            alamat: "Jl. Melati Indah Blok B No. 12",
+            linkBerkas: "https://drive.google.com/drive/folders/contoh-berkas-alya",
+            statusSeleksi: "terverifikasi",
+            catatanAdmin: "Berkas rapor & sertifikat olimpiade sains lengkap dan valid.",
+            timeline: [
+              { waktu: "2026-11-23T08:30:00.000Z", judul: "Pendaftaran Online Diterima", deskripsi: "Formulir pendaftaran masuk dengan tiket SPMB-2026-001.", status: "menunggu" },
+              { waktu: "2026-11-24T10:15:00.000Z", judul: "Berkas Terverifikasi Panitia", deskripsi: "Berkas rapor & sertifikat olimpiade sains lengkap dan valid.", status: "terverifikasi" }
+            ],
+            createdAt: "2026-11-23T08:30:00.000Z",
+            updatedAt: "2026-11-24T10:15:00.000Z"
+          },
+          {
+            ticketId: "SPMB-2026-002",
+            pin: "654321",
+            namaLengkap: "Raka Pratama Wijaya",
+            nisn: "0097654321",
+            jenisKelamin: "Laki-laki",
+            tempatTanggalLahir: "Jakarta, 22 Agustus 2011",
+            asalSekolah: "SMP Harapan Bangsa",
+            jalurPendaftaran: "Zonasi",
+            pilihanJurusan: "IPS / Sosial Humaniora",
+            namaWali: "Siti Aminah",
+            noWhatsapp: "6285711223344",
+            alamat: "Perum Griya Asri No. 8",
+            linkBerkas: "https://drive.google.com/drive/folders/contoh-berkas-raka",
+            statusSeleksi: "perlu_perbaikan",
+            catatanAdmin: "Scan Kartu Keluarga kurang jelas, mohon unggah ulang file PDF beresolusi tinggi melalui Portal Peserta.",
+            timeline: [
+              { waktu: "2026-11-24T14:20:00.000Z", judul: "Pendaftaran Online Diterima", deskripsi: "Formulir pendaftaran masuk dengan tiket SPMB-2026-002.", status: "menunggu" },
+              { waktu: "2026-11-25T09:05:00.000Z", judul: "Perlu Perbaikan Berkas", deskripsi: "Scan Kartu Keluarga kurang jelas, mohon unggah ulang file PDF beresolusi tinggi melalui Portal Peserta.", status: "perlu_perbaikan" }
+            ],
+            createdAt: "2026-11-24T14:20:00.000Z",
+            updatedAt: "2026-11-25T09:05:00.000Z"
+          }
+        ],
+        waLogs: [
+          {
+            id: "log-demo-1",
+            ticketId: "SPMB-2026-001",
+            namaPenerima: "Alya Putri Ramadhani",
+            noWhatsapp: "6281298765432",
+            kategoriNotif: "Berkas Terverifikasi",
+            isiPesan: "Halo Alya Putri Ramadhani (SPMB-2026-001), status pendaftaran SPMB Anda telah diperbarui menjadi: Berkas Terverifikasi.",
+            metodeKirim: "WhatsApp Web / Direct",
+            waktuKirim: "2026-11-24T10:16:00.000Z"
+          }
+        ]
+      };
+    }
+
+    const previewSeed = IS_PREVIEW ? createPreviewSeedState() : null;
+
+    const state = {
+      activeTab: "beranda", // beranda | daftar | lacak | portal | admin_dashboard | admin_verifikasi | admin_pengaturan
+      isAdmin: false,
+      adminUser: null,
+      studentSession: null, // Dokumen pendaftar saat peserta login
+      trackedTicketId: IS_PREVIEW ? "SPMB-2026-001" : "",
+      adminFilterStatus: "semua",
+      adminFilterJalur: "semua",
+      adminSearchQuery: "",
+      isLoadingFirebase: !IS_PREVIEW,
+      config: IS_PREVIEW ? previewSeed.config : { ...DEFAULT_EMPTY_CONFIG },
+      pendaftar: IS_PREVIEW ? previewSeed.pendaftar : [],
+      waLogs: IS_PREVIEW ? previewSeed.waLogs : [],
+      countdown: {
+        closed: false,
+        reason: "open", // open | manual_closed | deadline_expired
+        days: 0,
+        hours: 0,
+        minutes: 0,
+        seconds: 0,
+        urgent: false,
+        hasDeadline: false
+      }
+    };
+
+    // =========================================================================
+    // 6. INISIALISASI FIREBASE PRODUKSI (HANYA SAAT IS_PREVIEW === false)
+    // =========================================================================
+    let fbAuth = null;
+    let fbDb = null;
+
+    if (!IS_PREVIEW) {
+      try {
+        const app = initializeApp(firebaseConfig);
+        fbAuth = getAuth(app);
+        fbDb = getFirestore(app);
+
+        // Listener Auth Admin murni dari Firebase Authentication
+        onAuthStateChanged(fbAuth, (user) => {
+          state.isAdmin = !!user;
+          state.adminUser = user ? { email: user.email, uid: user.uid } : null;
+          if (!user && state.activeTab.startsWith("admin_")) {
+            state.activeTab = "beranda";
+          }
+          renderChrome();
+          renderCurrentView();
+        });
+
+        // Listener Real-time Konfigurasi SPMB (pengaturan_spmb/config_utama)
+        onSnapshot(
+          doc(fbDb, "pengaturan_spmb", "config_utama"),
+          (snap) => {
+            if (snap.exists()) {
+              state.config = { ...DEFAULT_EMPTY_CONFIG, ...snap.data() };
+            } else {
+              // ZERO AUTO-SEED: Jangan menulis data dummy ke Firestore
+              state.config = { ...DEFAULT_EMPTY_CONFIG };
+            }
+            updateCountdownState();
+            renderChrome();
+            renderCurrentView();
+          },
+          (err) => {
+            console.error("Gagal memuat pengaturan_spmb:", err);
+            showToast("Gagal menyinkronkan pengaturan sekolah dari Firestore.", "error");
+          }
+        );
+
+        // Listener Real-time Koleksi Pendaftar
+        onSnapshot(
+          collection(fbDb, "pendaftar"),
+          (snapshot) => {
+            const list = [];
+            snapshot.forEach((docSnap) => {
+              list.push({ ticketId: docSnap.id, ...docSnap.data() });
+            });
+            list.sort((a, b) => (b.createdAt || "").localeCompare(a.createdAt || ""));
+            state.pendaftar = list;
+            state.isLoadingFirebase = false;
+
+            // Perbarui sesi peserta jika sedang login
+            if (state.studentSession) {
+              const updatedSelf = list.find((item) => item.ticketId === state.studentSession.ticketId);
+              if (updatedSelf) state.studentSession = updatedSelf;
+            }
+            renderCurrentView();
+          },
+          (err) => {
+            state.isLoadingFirebase = false;
+            console.error("Gagal memuat koleksi pendaftar:", err);
+          }
+        );
+
+        // Listener Real-time Log Notifikasi WhatsApp
+        onSnapshot(
+          collection(fbDb, "log_notifikasi_wa"),
+          (snapshot) => {
+            const logs = [];
+            snapshot.forEach((docSnap) => {
+              logs.push({ id: docSnap.id, ...docSnap.data() });
+            });
+            logs.sort((a, b) => (b.waktuKirim || "").localeCompare(a.waktuKirim || ""));
+            state.waLogs = logs;
+            if (state.activeTab === "admin_verifikasi" || state.activeTab === "portal") {
+              renderCurrentView();
+            }
+          },
+          () => {
+            // Abaikan jika aturan keamanan membatasi baca log untuk publik
+          }
+        );
+      } catch (error) {
+        state.isLoadingFirebase = false;
+        console.error("Inisialisasi Firebase gagal:", error);
+      }
+    }
+
+    // =========================================================================
+    // 7. UTILITAS STATUS, FORMATTER, & PENGHITUNG MUNDUR (AUTO-CLOSE)
+    // =========================================================================
+    const STATUS_META = {
+      menunggu: {
+        label: "Menunggu Verifikasi",
+        badgeClass: "bg-sky-100 text-sky-800 border-sky-200",
+        dotClass: "bg-sky-500",
+        gradient: "from-sky-500 to-blue-600"
+      },
+      perlu_perbaikan: {
+        label: "Perlu Perbaikan Berkas",
+        badgeClass: "bg-amber-100 text-amber-800 border-amber-200",
+        dotClass: "bg-amber-500",
+        gradient: "from-amber-500 to-orange-500"
+      },
+      terverifikasi: {
+        label: "Berkas Terverifikasi",
+        badgeClass: "bg-indigo-100 text-indigo-800 border-indigo-200",
+        dotClass: "bg-indigo-500",
+        gradient: "from-indigo-500 to-violet-600"
+      },
+      lulus: {
+        label: "Lulus Seleksi",
+        badgeClass: "bg-emerald-100 text-emerald-800 border-emerald-200",
+        dotClass: "bg-emerald-500",
+        gradient: "from-emerald-500 to-teal-600"
+      },
+      tidak_lulus: {
+        label: "Tidak Lulus",
+        badgeClass: "bg-rose-100 text-rose-800 border-rose-200",
+        dotClass: "bg-rose-500",
+        gradient: "from-rose-500 to-pink-600"
+      }
+    };
+
+    function escapeHtml(str) {
+      if (str === null || str === undefined) return "";
+      return String(str)
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+    }
+
+    function formatTanggalIndo(isoStr) {
+      if (!isoStr) return "-";
+      const d = new Date(isoStr);
+      if (isNaN(d.getTime())) return "-";
+      return d.toLocaleDateString("id-ID", {
+        day: "2-digit",
+        month: "short",
+        year: "numeric",
+        hour: "2-digit",
+        minute: "2-digit"
+      }) + " WIB";
+    }
+
+    function toDatetimeLocalValue(isoStr) {
+      if (!isoStr) return "";
+      const d = new Date(isoStr);
+      if (isNaN(d.getTime())) return "";
+      const pad = (n) => String(n).padStart(2, "0");
+      return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+    }
+
+    function normalizeWaPhone(phone) {
+      let clean = String(phone || "").replace(/[^0-9]/g, "");
+      if (clean.startsWith("0")) {
+        clean = "62" + clean.slice(1);
+      } else if (clean.startsWith("8")) {
+        clean = "62" + clean;
+      }
+      return clean;
+    }
+
+    function compileWaMessage(template, data) {
+      const statusText = STATUS_META[data.statusSeleksi]?.label || data.statusSeleksi || "Menunggu Verifikasi";
+      return String(template || "")
+        .replace(/\{nama\}/g, data.namaLengkap || "")
+        .replace(/\{tiket\}/g, data.ticketId || "")
+        .replace(/\{pin\}/g, data.pin || "")
+        .replace(/\{jalur\}/g, data.jalurPendaftaran || "")
+        .replace(/\{status\}/g, statusText)
+        .replace(/\{catatan\}/g, data.catatanAdmin || "-")
+        .replace(/\{sekolah\}/g, state.config.namaSekolah || "Sekolah");
+    }
+
+    function showToast(message, type = "info") {
+      const container = document.getElementById("toast-container");
+      if (!container) return;
+      const styles = {
+        success: "bg-emerald-600 text-white border-emerald-500",
+        error: "bg-rose-600 text-white border-rose-500",
+        warning: "bg-amber-500 text-white border-amber-400",
+        info: "bg-slate-900 text-white border-slate-700"
+      };
+      const toast = document.createElement("div");
+      toast.className = `pointer-events-auto px-4 py-3 rounded-2xl shadow-float border text-sm font-medium flex items-center justify-between gap-3 transition-all duration-300 transform translate-y-0 opacity-100 ${styles[type] || styles.info}`;
+      toast.innerHTML = `
+        <span class="leading-snug">${escapeHtml(message)}</span>
+        <button type="button" class="text-white/80 hover:text-white font-bold text-base leading-none">&times;</button>
+      `;
+      toast.querySelector("button").onclick = () => toast.remove();
+      container.appendChild(toast);
+      setTimeout(() => {
+        toast.classList.add("opacity-0", "-translate-y-2");
+        setTimeout(() => toast.remove(), 300);
+      }, 4200);
+    }
+
+    function copyTextToClipboard(text, label = "Teks") {
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(text).then(() => {
+          showToast(`${label} (${text}) berhasil disalin!`, "success");
+        }).catch(() => {
+          showToast(`Salin manual: ${text}`, "info");
+        });
+      } else {
+        showToast(`Kode Anda: ${text}`, "info");
+      }
+    }
+
+    // Penghitung Mundur Real-Time + Logika Penguncian Otomatis
+    function updateCountdownState() {
+      const prevClosed = state.countdown.closed;
+      const cfg = state.config;
+
+      if (!cfg.statusBuka) {
+        state.countdown = {
+          closed: true,
+          reason: "manual_closed",
+          days: 0,
+          hours: 0,
+          minutes: 0,
+          seconds: 0,
+          urgent: false,
+          hasDeadline: !!cfg.deadlinePendaftaran
+        };
+      } else if (cfg.deadlinePendaftaran) {
+        const target = new Date(cfg.deadlinePendaftaran).getTime();
+        const now = Date.now();
+        const diff = target - now;
+
+        if (!isNaN(target) && diff <= 0) {
+          state.countdown = {
+            closed: true,
+            reason: "deadline_expired",
+            days: 0,
+            hours: 0,
+            minutes: 0,
+            seconds: 0,
+            urgent: false,
+            hasDeadline: true
+          };
+        } else if (!isNaN(target)) {
+          const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+          const hours = Math.floor((diff / (1000 * 60 * 60)) % 24);
+          const minutes = Math.floor((diff / (1000 * 60)) % 60);
+          const seconds = Math.floor((diff / 1000) % 60);
+          const urgent = diff <= 24 * 60 * 60 * 1000;
+          state.countdown = {
+            closed: false,
+            reason: "open",
+            days,
+            hours,
+            minutes,
+            seconds,
+            urgent,
+            hasDeadline: true
+          };
+        } else {
+          state.countdown = { closed: false, reason: "open", days: 0, hours: 0, minutes: 0, seconds: 0, urgent: false, hasDeadline: false };
+        }
+      } else {
+        state.countdown = { closed: false, reason: "open", days: 0, hours: 0, minutes: 0, seconds: 0, urgent: false, hasDeadline: false };
+      }
+
+      updateLiveCountdownDom();
+
+      // Jika transisi dari terbuka -> tertutup tepat saat deadline habis, langsung kunci layar pendaftaran
+      if (!prevClosed && state.countdown.closed) {
+        showToast("Waktu pendaftaran telah berakhir. Formulir pendaftaran dikunci otomatis.", "warning");
+        renderChrome();
+        if (state.activeTab === "daftar" || state.activeTab === "beranda") {
+          renderCurrentView();
+        }
+      }
+    }
+
+    function updateLiveCountdownDom() {
+      const cd = state.countdown;
+      const pad = (n) => String(n).padStart(2, "0");
+      const shortStr = cd.closed
+        ? "DITUTUP"
+        : cd.hasDeadline
+        ? `${cd.days}h : ${pad(cd.hours)}j : ${pad(cd.minutes)}m : ${pad(cd.seconds)}d`
+        : "DIBUKA";
+
+      // Update Sidebar Mini Countdown
+      const sbBox = document.getElementById("sidebar-countdown-box");
+      const sbBadge = document.getElementById("sidebar-cd-badge");
+      const sbTimer = document.getElementById("sidebar-cd-timer");
+      if (sbBox && sbBadge && sbTimer) {
+        sbTimer.textContent = shortStr;
+        if (cd.closed) {
+          sbBox.className = "rounded-2xl p-3.5 bg-gradient-to-br from-rose-600 to-pink-600 text-white shadow-md";
+          sbBadge.textContent = "TUTUP";
+        } else if (cd.urgent) {
+          sbBox.className = "rounded-2xl p-3.5 bg-gradient-to-br from-amber-500 to-orange-600 text-white shadow-md";
+          sbBadge.textContent = "SEGERA TUTUP";
+        } else {
+          sbBox.className = "rounded-2xl p-3.5 bg-gradient-to-br from-indigo-600 to-sky-500 text-white shadow-md";
+          sbBadge.textContent = "DIBUKA";
+        }
+      }
+
+      // Update Mobile Header Pill
+      const mobPill = document.getElementById("mobile-cd-pill");
+      if (mobPill) {
+        mobPill.textContent = cd.closed ? "Pendaftaran Ditutup" : cd.hasDeadline ? `Sisa ${shortStr}` : "Pendaftaran Dibuka";
+        mobPill.className = cd.closed
+          ? "text-[10px] font-bold text-rose-700 bg-rose-100 px-2 py-0.5 rounded-full truncate"
+          : cd.urgent
+          ? "text-[10px] font-bold text-amber-800 bg-amber-100 px-2 py-0.5 rounded-full truncate"
+          : "text-[10px] font-bold text-indigo-700 bg-indigo-50 px-2 py-0.5 rounded-full truncate";
+      }
+
+      // Update Hero Big Countdown Boxes (jika sedang berada di Beranda)
+      const elD = document.getElementById("hero-cd-days");
+      const elH = document.getElementById("hero-cd-hours");
+      const elM = document.getElementById("hero-cd-minutes");
+      const elS = document.getElementById("hero-cd-seconds");
+      if (elD && elH && elM && elS) {
+        elD.textContent = pad(cd.days);
+        elH.textContent = pad(cd.hours);
+        elM.textContent = pad(cd.minutes);
+        elS.textContent = pad(cd.seconds);
+      }
+    }
+
+    // Jalankan interval detik
+    setInterval(updateCountdownState, 1000);
+
+    // =========================================================================
+    // 8. NAVIGASI & RENDER CHROME (SIDEBAR DESKTOP + BOTTOM BAR MOBILE)
+    // =========================================================================
+    function getNavItems() {
+      const publicItems = [
+        {
+          id: "beranda",
+          label: "Beranda",
+          shortLabel: "Beranda",
+          icon: ICONS.home,
+          gradient: "from-indigo-500 to-blue-600"
+        },
+        {
+          id: "daftar",
+          label: "Daftar Baru",
+          shortLabel: "Daftar",
+          icon: ICONS.form,
+          gradient: "from-sky-500 to-cyan-500"
+        },
+        {
+          id: "lacak",
+          label: "Lacak Tiket",
+          shortLabel: "Tiket",
+          icon: ICONS.ticket,
+          gradient: "from-violet-500 to-purple-600"
+        },
+        {
+          id: "portal",
+          label: "Portal Peserta",
+          shortLabel: "Peserta",
+          icon: ICONS.student,
+          gradient: "from-emerald-500 to-teal-600"
+        }
+      ];
+
+      if (!state.isAdmin) {
+        return publicItems;
+      }
+
+      const adminItems = [
+        {
+          id: "admin_dashboard",
+          label: "Dashboard Panitia",
+          shortLabel: "Admin",
+          icon: ICONS.dashboard,
+          gradient: "from-rose-500 to-pink-600"
+        },
+        {
+          id: "admin_verifikasi",
+          label: "Verifikasi & WA",
+          shortLabel: "Verifikasi",
+          icon: ICONS.verify,
+          gradient: "from-emerald-500 to-green-600"
+        },
+        {
+          id: "admin_pengaturan",
+          label: "Identitas & Kuota",
+          shortLabel: "Atur",
+          icon: ICONS.settings,
+          gradient: "from-amber-500 to-orange-600"
+        }
+      ];
+
+      return [...publicItems, ...adminItems];
+    }
+
+    window.navigateTo = function (tabId) {
+      if (tabId.startsWith("admin_") && !state.isAdmin) {
+        openAdminLoginModal();
+        return;
+      }
+      state.activeTab = tabId;
+      renderChrome();
+      renderCurrentView();
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    };
+
+    function renderLogoElement(sizeClass = "w-full h-full object-cover") {
+      if (state.config.logoSekolah) {
+        return `<img src="${escapeHtml(state.config.logoSekolah)}" alt="Logo Sekolah" class="${sizeClass}" />`;
+      }
+      return ICONS.school;
+    }
+
+    function renderChrome() {
+      // 1. Preview Mode Banner (Strictly ONLY when IS_PREVIEW === true)
+      const previewSlot = document.getElementById("preview-banner-slot");
+      if (previewSlot) {
+        if (IS_PREVIEW) {
+          previewSlot.innerHTML = `
+            <div class="bg-gradient-to-r from-amber-500 via-orange-500 to-pink-500 text-white px-4 py-2 text-xs font-medium flex flex-wrap items-center justify-between gap-2 shadow-sm">
+              <div class="flex items-center gap-2">
+                <span class="px-2 py-0.5 rounded-full bg-white/20 font-extrabold uppercase tracking-wider text-[10px]">Mode Preview</span>
+                <span>Simulasi berjalan di memori lokal. Contoh Tiket: <strong>SPMB-2026-001</strong> (PIN: <strong>123456</strong>)</span>
+              </div>
+              <span class="text-[11px] opacity-90">Ubah <code>IS_PREVIEW = false</code> saat deploy ke Firebase</span>
+            </div>
+          `;
+        } else {
+          previewSlot.innerHTML = "";
+        }
+      }
+
+      // 2. Identitas Sekolah pada Sidebar & Mobile Header
+      const sbLogo = document.getElementById("sidebar-logo-box");
+      const mobLogo = document.getElementById("mobile-logo-box");
+      if (sbLogo) sbLogo.innerHTML = renderLogoElement();
+      if (mobLogo) mobLogo.innerHTML = renderLogoElement();
+
+      const sbName = document.getElementById("sidebar-school-name");
+      const sbNpsn = document.getElementById("sidebar-school-npsn");
+      const sbTahun = document.getElementById("sidebar-tahun-ajaran");
+      const mobName = document.getElementById("mobile-school-name");
+
+      if (sbName) sbName.textContent = state.config.namaSekolah || "SPMB Online Terpadu";
+      if (sbNpsn) sbNpsn.textContent = state.config.npsn && state.config.npsn !== "-" ? `NPSN: ${state.config.npsn}` : "Portal Penerimaan Murid Baru";
+      if (sbTahun) sbTahun.textContent = state.config.tahunAjaran || "2026/2027";
+      if (mobName) mobName.textContent = state.config.namaSekolah || "SPMB Online";
+
+      // 3. Desktop Sidebar Nav
+      const navItems = getNavItems();
+      const desktopNav = document.getElementById("desktop-nav-list");
+      if (desktopNav) {
+        desktopNav.innerHTML = navItems
+          .map((item) => {
+            const active = state.activeTab === item.id;
+            const isAdminItem = item.id.startsWith("admin_");
+            const sectionHeader =
+              item.id === "admin_dashboard"
+                ? `<div class="pt-3 pb-1.5 px-2 text-[10px] font-extrabold uppercase tracking-wider text-slate-400">Panel Panitia SPMB</div>`
+                : "";
+            return `
+              ${sectionHeader}
+              <button
+                type="button"
+                onclick="window.navigateTo('${item.id}')"
+                class="w-full flex items-center gap-3 px-3 py-2.5 rounded-2xl text-left transition-all duration-200 ${
+                  active
+                    ? "bg-white shadow-glass border border-slate-200/90 text-slate-900 font-bold"
+                    : "text-slate-600 hover:bg-white/70 hover:text-slate-900 font-medium"
+                }"
+              >
+                <span class="w-9 h-9 rounded-xl bg-gradient-to-br ${item.gradient} text-white flex items-center justify-center shadow-sm shrink-0">
+                  ${item.icon}
+                </span>
+                <span class="text-sm truncate flex-1">${item.label}</span>
+                ${
+                  item.id === "daftar" && state.countdown.closed
+                    ? `<span class="px-1.5 py-0.5 text-[9px] font-bold rounded bg-rose-100 text-rose-700">TUTUP</span>`
+                    : ""
+                }
+                ${
+                  isAdminItem && active
+                    ? `<span class="w-2 h-2 rounded-full bg-rose-500"></span>`
+                    : ""
+                }
+              </button>
+            `;
+          })
+          .join("");
+      }
+
+      // 4. Desktop Sidebar Auth Footer
+      const sbFooter = document.getElementById("sidebar-auth-footer");
+      if (sbFooter) {
+        if (state.isAdmin) {
+          sbFooter.innerHTML = `
+            <div class="flex items-center justify-between gap-2">
+              <div class="min-w-0">
+                <span class="inline-flex items-center gap-1 text-[10px] font-bold text-emerald-700 bg-emerald-100 px-2 py-0.5 rounded-full">
+                  Panitia Aktif
+                </span>
+                <p class="text-xs font-semibold text-slate-700 truncate mt-1">${escapeHtml(state.adminUser?.email || "Admin SPMB")}</p>
+              </div>
+              <button
+                type="button"
+                onclick="window.handleAdminLogout()"
+                title="Keluar Admin"
+                class="p-2.5 rounded-xl bg-rose-50 text-rose-600 hover:bg-rose-100 transition shrink-0"
+              >
+                ${ICONS.logout}
+              </button>
+            </div>
+          `;
+        } else {
+          sbFooter.innerHTML = `
+            <button
+              type="button"
+              onclick="window.openAdminLoginModal()"
+              class="w-full flex items-center justify-center gap-2 px-3.5 py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold shadow-sm transition"
+            >
+              ${ICONS.shield}
+              <span>Login Panitia / Admin</span>
+            </button>
+          `;
+        }
+      }
+
+      // 5. Mobile Header Action
+      const mobAction = document.getElementById("mobile-header-action");
+      if (mobAction) {
+        if (state.isAdmin) {
+          mobAction.innerHTML = `
+            <button
+              type="button"
+              onclick="window.handleAdminLogout()"
+              class="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl bg-rose-50 text-rose-600 border border-rose-200 text-xs font-bold"
+            >
+              ${ICONS.logout}
+              <span>Keluar</span>
+            </button>
+          `;
+        } else {
+          mobAction.innerHTML = `
+            <button
+              type="button"
+              onclick="window.openAdminLoginModal()"
+              class="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl bg-slate-900 text-white text-xs font-bold shadow-sm"
+            >
+              ${ICONS.shield}
+              <span>Panitia</span>
+            </button>
+          `;
+        }
+      }
+
+      // 6. Mobile Bottom Navigation Bar (5 Slot Proporsional)
+      const mobBottomNav = document.getElementById("mobile-bottom-nav");
+      if (mobBottomNav) {
+        const mobileSlots = state.isAdmin
+          ? [
+              navItems.find((i) => i.id === "beranda"),
+              navItems.find((i) => i.id === "lacak"),
+              navItems.find((i) => i.id === "admin_dashboard"),
+              navItems.find((i) => i.id === "admin_verifikasi"),
+              navItems.find((i) => i.id === "admin_pengaturan")
+            ]
+          : [
+              navItems.find((i) => i.id === "beranda"),
+              navItems.find((i) => i.id === "daftar"),
+              navItems.find((i) => i.id === "lacak"),
+              navItems.find((i) => i.id === "portal"),
+              {
+                id: "__admin_trigger",
+                shortLabel: "Panitia",
+                icon: ICONS.shield,
+                gradient: "from-slate-700 to-slate-900"
+              }
+            ];
+
+        mobBottomNav.className = `grid grid-cols-${mobileSlots.length} gap-1 items-center`;
+        mobBottomNav.innerHTML = mobileSlots
+          .map((item) => {
+            const active = state.activeTab === item.id;
+            const clickAttr =
+              item.id === "__admin_trigger"
+                ? `window.openAdminLoginModal()`
+                : `window.navigateTo('${item.id}')`;
+            return `
+              <button
+                type="button"
+                onclick="${clickAttr}"
+                class="flex flex-col items-center justify-center py-1.5 px-1 rounded-xl transition ${
+                  active ? "bg-indigo-50/90 text-indigo-700" : "text-slate-500 hover:text-slate-800"
+                }"
+              >
+                <span class="w-7 h-7 rounded-lg bg-gradient-to-br ${item.gradient} text-white flex items-center justify-center shadow-xs mb-0.5 ${
+                  active ? "scale-105" : "opacity-85"
+                } transition">
+                  ${item.icon}
+                </span>
+                <span class="text-[10px] font-bold truncate max-w-full">${item.shortLabel}</span>
+              </button>
+            `;
+          })
+          .join("");
+      }
+
+      updateLiveCountdownDom();
+    }
+
+    // =========================================================================
+    // 9. ROUTER HALAMAN UTAMA
+    // =========================================================================
+    function renderCurrentView() {
+      const container = document.getElementById("app-view");
+      if (!container) return;
+
+      switch (state.activeTab) {
+        case "beranda":
+          container.innerHTML = renderBerandaView();
+          updateLiveCountdownDom();
+          break;
+        case "daftar":
+          container.innerHTML = renderDaftarView();
+          break;
+        case "lacak":
+          container.innerHTML = renderLacakView();
+          break;
+        case "portal":
+          container.innerHTML = renderPortalPesertaView();
+          break;
+        case "admin_dashboard":
+          container.innerHTML = state.isAdmin ? renderAdminDashboardView() : renderBerandaView();
+          break;
+        case "admin_verifikasi":
+          container.innerHTML = state.isAdmin ? renderAdminVerifikasiView() : renderBerandaView();
+          break;
+        case "admin_pengaturan":
+          container.innerHTML = state.isAdmin ? renderAdminPengaturanView() : renderBerandaView();
+          break;
+        default:
+          container.innerHTML = renderBerandaView();
+      }
+    }
+
+    // =========================================================================
+    // 10. VIEW 1: BERANDA, COUNTDOWN AUTO-CLOSE & INFO KUOTA REAL-TIME
+    // =========================================================================
+    function getQuotaStats() {
+      const cfg = state.config;
+      const countByJalur = (jalur) =>
+        state.pendaftar.filter(
+          (p) => p.jalurPendaftaran === jalur && p.statusSeleksi !== "tidak_lulus"
+        ).length;
+
+      const list = [
+        {
+          nama: "Zonasi",
+          kuota: Number(cfg.kuotaZonasi) || 0,
+          terisi: countByJalur("Zonasi"),
+          gradient: "from-indigo-500 to-blue-600",
+          barColor: "bg-indigo-600",
+          lightBg: "bg-indigo-50 text-indigo-700",
+          desc: "Seleksi berdasarkan jarak domisili sesuai Kartu Keluarga."
+        },
+        {
+          nama: "Prestasi",
+          kuota: Number(cfg.kuotaPrestasi) || 0,
+          terisi: countByJalur("Prestasi"),
+          gradient: "from-violet-500 to-purple-600",
+          barColor: "bg-violet-600",
+          lightBg: "bg-violet-50 text-violet-700",
+          desc: "Nilai rapor unggulan & kejuaraan akademik/non-akademik."
+        },
+        {
+          nama: "Afirmasi",
+          kuota: Number(cfg.kuotaAfirmasi) || 0,
+          terisi: countByJalur("Afirmasi"),
+          gradient: "from-emerald-500 to-teal-600",
+          barColor: "bg-emerald-600",
+          lightBg: "bg-emerald-50 text-emerald-700",
+          desc: "Diperuntukkan bagi keluarga ekonomi tidak mampu (KIP/PKH)."
+        },
+        {
+          nama: "Mutasi",
+          kuota: Number(cfg.kuotaMutasi) || 0,
+          terisi: countByJalur("Mutasi"),
+          gradient: "from-amber-500 to-orange-600",
+          barColor: "bg-amber-500",
+          lightBg: "bg-amber-50 text-amber-700",
+          desc: "Perpindahan tugas orang tua/wali atau anak guru."
+        }
+      ];
+
+      return list.map((item) => {
+        const sisa = Math.max(0, item.kuota - item.terisi);
+        const pct = item.kuota > 0 ? Math.min(100, Math.round((item.terisi / item.kuota) * 100)) : 0;
+        return { ...item, sisa, pct };
+      });
+    }
+
+    function renderBerandaView() {
+      const cfg = state.config;
+      const cd = state.countdown;
+      const quotas = getQuotaStats();
+      const totalKuota = quotas.reduce((s, q) => s + q.kuota, 0);
+      const totalTerisi = quotas.reduce((s, q) => s + q.terisi, 0);
+      const pad = (n) => String(n).padStart(2, "0");
+
+      const cdCardTheme = cd.closed
+        ? "from-rose-600 via-red-600 to-pink-600"
+        : cd.urgent
+        ? "from-amber-500 via-orange-500 to-rose-500"
+        : "from-indigo-600 via-blue-600 to-sky-500";
+
+      return `
+        <div class="space-y-6">
+          <!-- HERO BENTO BANNER -->
+          <section class="glass-card rounded-3xl p-6 sm:p-8 shadow-glass relative overflow-hidden">
+            <div class="absolute -right-12 -top-12 w-56 h-56 rounded-full bg-gradient-to-br from-indigo-400/20 to-sky-400/20 blur-2xl pointer-events-none"></div>
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-center relative z-10">
+              <div class="lg:col-span-7 space-y-4">
+                <div class="flex items-center gap-3.5">
+                  <div class="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl bg-gradient-to-br from-indigo-600 to-sky-500 text-white flex items-center justify-center shadow-lg shrink-0 overflow-hidden border-2 border-white">
+                    ${renderLogoElement()}
+                  </div>
+                  <div>
+                    <div class="flex flex-wrap items-center gap-2">
+                      <span class="px-3 py-1 rounded-full text-xs font-extrabold bg-indigo-100 text-indigo-700">
+                        TAHUN AJARAN ${escapeHtml(cfg.tahunAjaran || "2026/2027")}
+                      </span>
+                      ${
+                        cd.closed
+                          ? `<span class="px-3 py-1 rounded-full text-xs font-extrabold bg-rose-100 text-rose-700">PENDAFTARAN DITUTUP</span>`
+                          : `<span class="px-3 py-1 rounded-full text-xs font-extrabold bg-emerald-100 text-emerald-700">PENDAFTARAN DIBUKA</span>`
+                      }
+                    </div>
+                    <h2 class="font-display font-extrabold text-2xl sm:text-3xl text-slate-900 mt-1.5 leading-tight">
+                      ${escapeHtml(cfg.namaSekolah)}
+                    </h2>
+                    <p class="text-xs sm:text-sm text-slate-500 font-medium mt-0.5">
+                      ${cfg.npsn && cfg.npsn !== "-" ? `NPSN: ${escapeHtml(cfg.npsn)} • ` : ""}${escapeHtml(cfg.alamatSekolah)}
+                    </p>
+                  </div>
+                </div>
+
+                <p class="text-slate-600 text-sm sm:text-base leading-relaxed">
+                  ${escapeHtml(cfg.tagline)}
+                </p>
+
+                <!-- CTA Buttons -->
+                <div class="flex flex-wrap items-center gap-3 pt-1">
+                  ${
+                    cd.closed
+                      ? `
+                        <button
+                          type="button"
+                          disabled
+                          class="inline-flex items-center gap-2 px-5 py-3.5 rounded-2xl bg-slate-200 text-slate-500 font-bold text-sm cursor-not-allowed"
+                        >
+                          ${ICONS.lock}
+                          <span>Pendaftaran Telah Ditutup</span>
+                        </button>
+                      `
+                      : `
+                        <button
+                          type="button"
+                          onclick="window.navigateTo('daftar')"
+                          class="inline-flex items-center gap-2.5 px-6 py-3.5 rounded-2xl bg-gradient-to-r from-indigo-600 to-sky-500 hover:from-indigo-700 hover:to-sky-600 text-white font-bold text-sm shadow-lg shadow-indigo-500/25 transition transform hover:-translate-y-0.5"
+                        >
+                          ${ICONS.form}
+                          <span>Daftar Murid Baru Sekarang</span>
+                        </button>
+                      `
+                  }
+                  <button
+                    type="button"
+                    onclick="window.navigateTo('lacak')"
+                    class="inline-flex items-center gap-2.5 px-5 py-3.5 rounded-2xl bg-white hover:bg-slate-50 text-slate-800 border border-slate-200 font-bold text-sm shadow-sm transition"
+                  >
+                    <span class="text-violet-600">${ICONS.ticket}</span>
+                    <span>Lacak Tiket Pendaftaran</span>
+                  </button>
+                </div>
+              </div>
+
+              <!-- COUNTDOWN TIMER WIDGET -->
+              <div class="lg:col-span-5">
+                <div class="rounded-3xl p-5 sm:p-6 bg-gradient-to-br ${cdCardTheme} text-white shadow-xl">
+                  <div class="flex items-center justify-between gap-2 mb-3">
+                    <div class="flex items-center gap-2">
+                      <span class="p-2 rounded-xl bg-white/20 backdrop-blur-xs">
+                        ${cd.closed ? ICONS.lock : ICONS.clock}
+                      </span>
+                      <div>
+                        <p class="text-[11px] font-bold uppercase tracking-wider text-white/80">
+                          ${cd.closed ? "Status Pendaftaran" : "Hitung Mundur Penutupan"}
+                        </p>
+                        <p class="text-xs font-semibold text-white">
+                          ${cfg.deadlinePendaftaran ? formatTanggalIndo(cfg.deadlinePendaftaran) : "Jadwal Fleksibel"}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+
+                  ${
+                    cd.closed
+                      ? `
+                        <div class="bg-white/15 backdrop-blur-xs rounded-2xl p-4 border border-white/20">
+                          <p class="font-display font-extrabold text-lg">Pendaftaran Resmi Ditutup</p>
+                          <p class="text-xs text-white/90 mt-1 leading-relaxed">
+                            ${escapeHtml(cfg.pesanTutup)}
+                          </p>
+                        </div>
+                      `
+                      : `
+                        <div class="grid grid-cols-4 gap-2 sm:gap-3 text-center my-2">
+                          <div class="bg-white/15 backdrop-blur-xs rounded-2xl py-3 px-1 border border-white/20">
+                            <div id="hero-cd-days" class="font-display font-extrabold text-2xl sm:text-3xl">${pad(cd.days)}</div>
+                            <div class="text-[10px] font-bold uppercase tracking-wider text-white/80 mt-0.5">Hari</div>
+                          </div>
+                          <div class="bg-white/15 backdrop-blur-xs rounded-2xl py-3 px-1 border border-white/20">
+                            <div id="hero-cd-hours" class="font-display font-extrabold text-2xl sm:text-3xl">${pad(cd.hours)}</div>
+                            <div class="text-[10px] font-bold uppercase tracking-wider text-white/80 mt-0.5">Jam</div>
+                          </div>
+                          <div class="bg-white/15 backdrop-blur-xs rounded-2xl py-3 px-1 border border-white/20">
+                            <div id="hero-cd-minutes" class="font-display font-extrabold text-2xl sm:text-3xl">${pad(cd.minutes)}</div>
+                            <div class="text-[10px] font-bold uppercase tracking-wider text-white/80 mt-0.5">Menit</div>
+                          </div>
+                          <div class="bg-white/15 backdrop-blur-xs rounded-2xl py-3 px-1 border border-white/20">
+                            <div id="hero-cd-seconds" class="font-display font-extrabold text-2xl sm:text-3xl">${pad(cd.seconds)}</div>
+                            <div class="text-[10px] font-bold uppercase tracking-wider text-white/80 mt-0.5">Detik</div>
+                          </div>
+                        </div>
+                        <p class="text-[11px] text-white/85 text-center mt-2">
+                          Sistem otomatis mengunci formulir pendaftaran saat waktu habis.
+                        </p>
+                      `
+                  }
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <!-- STATISTIK & KUOTA REAL-TIME PER JALUR -->
+          <section class="space-y-3.5">
+            <div class="flex flex-wrap items-center justify-between gap-2">
+              <div>
+                <h3 class="font-display font-extrabold text-lg sm:text-xl text-slate-900">Informasi Daya Tampung & Kuota Jalur</h3>
+                <p class="text-xs sm:text-sm text-slate-500">Pembaruan real-time pendaftar aktif (${totalTerisi} dari ${totalKuota} total kursi)</p>
+              </div>
+              ${
+                cfg.kontakPanitia
+                  ? `
+                    <a
+                      href="https://wa.me/${normalizeWaPhone(cfg.kontakPanitia)}?text=${encodeURIComponent(`Halo Panitia SPMB ${cfg.namaSekolah}, saya ingin bertanya informasi pendaftaran.`)}"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      class="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200 text-xs font-bold transition"
+                    >
+                      ${ICONS.whatsapp}
+                      <span>Helpdesk WA Panitia</span>
+                    </a>
+                  `
+                  : ""
+              }
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+              ${quotas
+                .map(
+                  (q) => `
+                  <div class="glass-card rounded-3xl p-5 shadow-glass hover:shadow-md transition">
+                    <div class="flex items-start justify-between gap-3">
+                      <div class="w-11 h-11 rounded-2xl bg-gradient-to-br ${q.gradient} text-white flex items-center justify-center shadow-md shrink-0">
+                        ${ICONS.users}
+                      </div>
+                      <span class="px-2.5 py-1 rounded-full text-xs font-extrabold ${q.lightBg}">
+                        Sisa ${q.sisa} Kursi
+                      </span>
+                    </div>
+                    <h4 class="font-display font-extrabold text-base text-slate-900 mt-4">Jalur ${q.nama}</h4>
+                    <p class="text-xs text-slate-500 mt-1 line-clamp-2">${q.desc}</p>
+                    <div class="mt-4">
+                      <div class="flex items-center justify-between text-xs font-bold text-slate-700 mb-1.5">
+                        <span>Terisi: ${q.terisi}</span>
+                        <span>Kuota: ${q.kuota}</span>
+                      </div>
+                      <div class="w-full h-2.5 bg-slate-100 rounded-full overflow-hidden">
+                        <div class="h-full ${q.barColor} rounded-full transition-all duration-500" style="width: ${q.pct}%"></div>
+                      </div>
+                    </div>
+                  </div>
+                `
+                )
+                .join("")}
+            </div>
+          </section>
+
+          <!-- ALUR PENDAFTARAN 4 LANGKAH -->
+          <section class="glass-card rounded-3xl p-6 shadow-glass">
+            <h3 class="font-display font-extrabold text-lg text-slate-900 mb-4">Alur Pendaftaran Mudah & Transparan</h3>
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+              <div class="p-4 rounded-2xl bg-slate-50/90 border border-slate-100">
+                <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-sky-500 to-blue-600 text-white font-display font-extrabold flex items-center justify-center shadow-sm mb-3">1</div>
+                <h4 class="font-bold text-sm text-slate-900">Isi Formulir Online</h4>
+                <p class="text-xs text-slate-500 mt-1">Lengkapi biodata calon murid, pilihan jalur, dan tautan berkas Google Drive.</p>
+              </div>
+              <div class="p-4 rounded-2xl bg-slate-50/90 border border-slate-100">
+                <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-violet-500 to-purple-600 text-white font-display font-extrabold flex items-center justify-center shadow-sm mb-3">2</div>
+                <h4 class="font-bold text-sm text-slate-900">Terima Tiket & PIN</h4>
+                <p class="text-xs text-slate-500 mt-1">Sistem menerbitkan Nomor Tiket unik & PIN beserta tombol bukti WhatsApp.</p>
+              </div>
+              <div class="p-4 rounded-2xl bg-slate-50/90 border border-slate-100">
+                <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-amber-500 to-orange-500 text-white font-display font-extrabold flex items-center justify-center shadow-sm mb-3">3</div>
+                <h4 class="font-bold text-sm text-slate-900">Lacak & Verifikasi</h4>
+                <p class="text-xs text-slate-500 mt-1">Pantau progres verifikasi seperti resi paket dan perbaiki berkas jika diminta.</p>
+              </div>
+              <div class="p-4 rounded-2xl bg-slate-50/90 border border-slate-100">
+                <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-600 text-white font-display font-extrabold flex items-center justify-center shadow-sm mb-3">4</div>
+                <h4 class="font-bold text-sm text-slate-900">Notifikasi WA & Kartu</h4>
+                <p class="text-xs text-slate-500 mt-1">Dapatkan notifikasi WhatsApp dari panitia dan cetak Kartu Bukti Peserta.</p>
+              </div>
+            </div>
+          </section>
+        </div>
+      `;
+    }
+
+    // =========================================================================
+    // 11. VIEW 2: FORMULIR PENDAFTARAN ONLINE (DENGAN AUTO-CLOSE LOCK)
+    // =========================================================================
+    function renderDaftarView() {
+      const cfg = state.config;
+      const cd = state.countdown;
+
+      // Penguncian Otomatis apabila deadline tercapai atau statusBuka === false
+      if (cd.closed) {
+        return `
+          <div class="max-w-2xl mx-auto">
+            <div class="glass-card rounded-3xl p-8 text-center shadow-glass border-2 border-rose-200">
+              <div class="w-20 h-20 rounded-3xl bg-gradient-to-br from-rose-500 to-pink-600 text-white flex items-center justify-center mx-auto shadow-lg mb-5">
+                ${ICONS.lock}
+              </div>
+              <span class="px-3 py-1 rounded-full text-xs font-extrabold bg-rose-100 text-rose-700 uppercase tracking-wider">
+                Formulir Terkunci Otomatis
+              </span>
+              <h2 class="font-display font-extrabold text-2xl text-slate-900 mt-3">
+                Pendaftaran SPMB Telah Ditutup
+              </h2>
+              ${
+                cfg.deadlinePendaftaran
+                  ? `<p class="text-xs font-semibold text-slate-500 mt-1">Batas Akhir: ${formatTanggalIndo(cfg.deadlinePendaftaran)}</p>`
+                  : ""
+              }
+              <p class="text-sm text-slate-600 mt-4 leading-relaxed bg-rose-50/70 p-4 rounded-2xl border border-rose-100">
+                ${escapeHtml(cfg.pesanTutup)}
+              </p>
+              <div class="flex flex-wrap items-center justify-center gap-3 mt-6">
+                <button
+                  type="button"
+                  onclick="window.navigateTo('lacak')"
+                  class="inline-flex items-center gap-2 px-5 py-3 rounded-2xl bg-gradient-to-r from-violet-600 to-indigo-600 text-white font-bold text-sm shadow-md"
+                >
+                  ${ICONS.ticket}
+                  <span>Lacak Tiket Pendaftaran</span>
+                </button>
+                <button
+                  type="button"
+                  onclick="window.navigateTo('portal')"
+                  class="inline-flex items-center gap-2 px-5 py-3 rounded-2xl bg-white border border-slate-200 text-slate-800 font-bold text-sm"
+                >
+                  ${ICONS.student}
+                  <span>Masuk Portal Peserta</span>
+                </button>
+              </div>
+            </div>
+          </div>
+        `;
+      }
+
+      const quotas = getQuotaStats();
+
+      return `
+        <div class="max-w-3xl mx-auto space-y-5">
+          <div class="glass-card rounded-3xl p-6 sm:p-8 shadow-glass">
+            <div class="flex items-center gap-3.5 pb-5 border-b border-slate-100">
+              <div class="w-12 h-12 rounded-2xl bg-gradient-to-br from-sky-500 to-indigo-600 text-white flex items-center justify-center shadow-md shrink-0">
+                ${ICONS.form}
+              </div>
+              <div>
+                <h2 class="font-display font-extrabold text-xl sm:text-2xl text-slate-900">Formulir Pendaftaran Murid Baru</h2>
+                <p class="text-xs sm:text-sm text-slate-500">Pastikan data sesuai dengan Ijazah/Rapor dan Kartu Keluarga.</p>
+              </div>
+            </div>
+
+            <form id="form-pendaftaran-baru" onsubmit="window.handleSubmitPendaftaran(event)" class="space-y-6 mt-6">
+              <!-- Bagian A: Biodata Calon Murid -->
+              <div class="space-y-4">
+                <h3 class="text-xs font-extrabold uppercase tracking-wider text-indigo-600 flex items-center gap-2">
+                  <span class="w-2 h-2 rounded-full bg-indigo-600"></span>
+                  A. Biodata Calon Murid
+                </h3>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div class="sm:col-span-2">
+                    <label class="block text-xs font-bold text-slate-700 mb-1.5">Nama Lengkap Calon Murid *</label>
+                    <input type="text" name="namaLengkap" required placeholder="Contoh: Muhammad Rizky Pratama" class="w-full px-4 py-3 rounded-xl border border-slate-200 bg-white focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-sm outline-none" />
+                  </div>
+                  <div>
+                    <label class="block text-xs font-bold text-slate-700 mb-1.5">NISN (10 Digit) *</label>
+                    <input type="text" name="nisn" required pattern="[0-9]{10}" maxlength="10" placeholder="0091234567" class="w-full px-4 py-3 rounded-xl border border-slate-200 bg-white focus:ring-2 focus:ring-indigo-500 text-sm outline-none" />
+                  </div>
+                  <div>
+                    <label class="block text-xs font-bold text-slate-700 mb-1.5">Jenis Kelamin *</label>
+                    <select name="jenisKelamin" required class="w-full px-4 py-3 rounded-xl border border-slate-200 bg-white focus:ring-2 focus:ring-indigo-500 text-sm outline-none">
+                      <option value="Laki-laki">Laki-laki</option>
+                      <option value="Perempuan">Perempuan</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label class="block text-xs font-bold text-slate-700 mb-1.5">Tempat, Tanggal Lahir *</label>
+                    <input type="text" name="tempatTanggalLahir" required placeholder="Contoh: Surabaya, 12 Mei 2011" class="w-full px-4 py-3 rounded-xl border border-slate-200 bg-white focus:ring-2 focus:ring-indigo-500 text-sm outline-none" />
+                  </div>
+                  <div>
+                    <label class="block text-xs font-bold text-slate-700 mb-1.5">Asal Sekolah (SMP/MTs/Sederajat) *</label>
+                    <input type="text" name="asalSekolah" required placeholder="Contoh: SMP Negeri 1 Nusantara" class="w-full px-4 py-3 rounded-xl border border-slate-200 bg-white focus:ring-2 focus:ring-indigo-500 text-sm outline-none" />
+                  </div>
+                </div>
+              </div>
+
+              <!-- Bagian B: Pilihan Jalur & Peminatan -->
+              <div class="space-y-4 pt-2 border-t border-slate-100">
+                <h3 class="text-xs font-extrabold uppercase tracking-wider text-violet-600 flex items-center gap-2">
+                  <span class="w-2 h-2 rounded-full bg-violet-600"></span>
+                  B. Pilihan Jalur & Program Peminatan
+                </h3>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <label class="block text-xs font-bold text-slate-700 mb-1.5">Jalur Pendaftaran *</label>
+                    <select name="jalurPendaftaran" required class="w-full px-4 py-3 rounded-xl border border-slate-200 bg-white focus:ring-2 focus:ring-indigo-500 text-sm outline-none">
+                      ${quotas
+                        .map(
+                          (q) =>
+                            `<option value="${q.nama}">Jalur ${q.nama} (Sisa Kuota: ${q.sisa})</option>`
+                        )
+                        .join("")}
+                    </select>
+                  </div>
+                  <div>
+                    <label class="block text-xs font-bold text-slate-700 mb-1.5">Pilihan Peminatan / Jurusan *</label>
+                    <input type="text" name="pilihanJurusan" required placeholder="Contoh: MIPA / IPS / Reguler / RPL" class="w-full px-4 py-3 rounded-xl border border-slate-200 bg-white focus:ring-2 focus:ring-indigo-500 text-sm outline-none" />
+                  </div>
+                </div>
+              </div>
+
+              <!-- Bagian C: Data Orang Tua/Wali & WhatsApp -->
+              <div class="space-y-4 pt-2 border-t border-slate-100">
+                <h3 class="text-xs font-extrabold uppercase tracking-wider text-emerald-600 flex items-center gap-2">
+                  <span class="w-2 h-2 rounded-full bg-emerald-600"></span>
+                  C. Orang Tua / Wali & Kontak WhatsApp
+                </h3>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <label class="block text-xs font-bold text-slate-700 mb-1.5">Nama Orang Tua / Wali *</label>
+                    <input type="text" name="namaWali" required placeholder="Nama Ayah / Ibu / Wali" class="w-full px-4 py-3 rounded-xl border border-slate-200 bg-white focus:ring-2 focus:ring-indigo-500 text-sm outline-none" />
+                  </div>
+                  <div>
+                    <label class="block text-xs font-bold text-slate-700 mb-1.5">Nomor WhatsApp Aktif (Untuk Notifikasi) *</label>
+                    <input type="tel" name="noWhatsapp" required placeholder="Contoh: 081234567890" class="w-full px-4 py-3 rounded-xl border border-slate-200 bg-white focus:ring-2 focus:ring-emerald-500 text-sm outline-none" />
+                  </div>
+                  <div class="sm:col-span-2">
+                    <label class="block text-xs font-bold text-slate-700 mb-1.5">Alamat Domisili Lengkap *</label>
+                    <textarea name="alamat" rows="2" required placeholder="Nama jalan, RT/RW, Kelurahan, Kecamatan" class="w-full px-4 py-3 rounded-xl border border-slate-200 bg-white focus:ring-2 focus:ring-indigo-500 text-sm outline-none"></textarea>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Bagian D: Berkas Digital -->
+              <div class="space-y-3 pt-2 border-t border-slate-100">
+                <h3 class="text-xs font-extrabold uppercase tracking-wider text-amber-600 flex items-center gap-2">
+                  <span class="w-2 h-2 rounded-full bg-amber-500"></span>
+                  D. Tautan Berkas Persyaratan (Google Drive / Cloud)
+                </h3>
+                <div>
+                  <label class="block text-xs font-bold text-slate-700 mb-1.5">Link Folder Google Drive Berkas (KK, Akta, Rapor/Piagam) *</label>
+                  <input type="url" name="linkBerkas" required placeholder="https://drive.google.com/drive/folders/..." class="w-full px-4 py-3 rounded-xl border border-slate-200 bg-white focus:ring-2 focus:ring-indigo-500 text-sm outline-none" />
+                  <p class="text-[11px] text-slate-500 mt-1">Pastikan akses berbagi folder diatur ke <strong>"Siapa saja yang memiliki link dapat melihat"</strong>.</p>
+                </div>
+              </div>
+
+              <div class="pt-3 flex flex-col sm:flex-row items-center justify-between gap-3">
+                <p class="text-xs text-slate-500">Nomor Tiket & PIN otomatis diterbitkan setelah mengirim.</p>
+                <button
+                  type="submit"
+                  id="btn-submit-daftar"
+                  class="w-full sm:w-auto inline-flex items-center justify-center gap-2.5 px-7 py-3.5 rounded-2xl bg-gradient-to-r from-indigo-600 via-blue-600 to-sky-500 hover:from-indigo-700 hover:to-sky-600 text-white font-bold text-sm shadow-lg shadow-indigo-500/25 transition"
+                >
+                  ${ICONS.sparkles}
+                  <span>Kirim Pendaftaran & Terbitkan Tiket</span>
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      `;
+    }
+
+    function generateTicketId() {
+      const year = new Date().getFullYear();
+      const nextNum = state.pendaftar.length + 1;
+      const randSuffix = Math.floor(100 + Math.random() * 900);
+      const candidate = `SPMB-${year}-${String(nextNum).padStart(3, "0")}`;
+      if (state.pendaftar.some((p) => p.ticketId === candidate)) {
+        return `SPMB-${year}-${randSuffix}${nextNum}`;
+      }
+      return candidate;
+    }
+
+    function generatePin6Digit() {
+      return String(Math.floor(100000 + Math.random() * 900000));
+    }
+
+    window.handleSubmitPendaftaran = async function (e) {
+      e.preventDefault();
+      updateCountdownState();
+      if (state.countdown.closed) {
+        showToast("Maaf, waktu pendaftaran baru saja berakhir.", "error");
+        renderCurrentView();
+        return;
+      }
+
+      const form = e.target;
+      const fd = new FormData(form);
+      const nowIso = new Date().toISOString();
+      const ticketId = generateTicketId();
+      const pin = generatePin6Digit();
+      const noWhatsapp = normalizeWaPhone(fd.get("noWhatsapp"));
+
+      const newRecord = {
+        ticketId,
+        pin,
+        namaLengkap: String(fd.get("namaLengkap") || "").trim(),
+        nisn: String(fd.get("nisn") || "").trim(),
+        jenisKelamin: String(fd.get("jenisKelamin") || "Laki-laki"),
+        tempatTanggalLahir: String(fd.get("tempatTanggalLahir") || "").trim(),
+        asalSekolah: String(fd.get("asalSekolah") || "").trim(),
+        jalurPendaftaran: String(fd.get("jalurPendaftaran") || "Zonasi"),
+        pilihanJurusan: String(fd.get("pilihanJurusan") || "").trim(),
+        namaWali: String(fd.get("namaWali") || "").trim(),
+        noWhatsapp,
+        alamat: String(fd.get("alamat") || "").trim(),
+        linkBerkas: String(fd.get("linkBerkas") || "").trim(),
+        statusSeleksi: "menunggu",
+        catatanAdmin: "Berkas diterima sistem, menunggu pemeriksaan panitia.",
+        timeline: [
+          {
+            waktu: nowIso,
+            judul: "Pendaftaran Online Diterima",
+            deskripsi: `Formulir berhasil dikirim dengan nomor tiket ${ticketId}.`,
+            status: "menunggu"
+          }
+        ],
+        createdAt: nowIso,
+        updatedAt: nowIso
+      };
+
+      const btn = document.getElementById("btn-submit-daftar");
+      if (btn) {
+        btn.disabled = true;
+        btn.innerHTML = `<span>Memproses Tiket...</span>`;
+      }
+
+      try {
+        if (IS_PREVIEW) {
+          state.pendaftar.unshift(newRecord);
+        } else {
+          await setDoc(doc(fbDb, "pendaftar", ticketId), newRecord);
+        }
+
+        state.trackedTicketId = ticketId;
+        state.studentSession = newRecord;
+        form.reset();
+        showToast(`Pendaftaran berhasil! Nomor Tiket Anda: ${ticketId}`, "success");
+        openTicketSuccessModal(newRecord);
+      } catch (err) {
+        console.error("Error simpan pendaftaran:", err);
+        showToast("Gagal mengirim pendaftaran ke database. Periksa koneksi Anda.", "error");
+      } finally {
+        if (btn) {
+          btn.disabled = false;
+          btn.innerHTML = `${ICONS.sparkles}<span>Kirim Pendaftaran & Terbitkan Tiket</span>`;
+        }
+      }
+    };
+
+    function openTicketSuccessModal(record) {
+      const waText = compileWaMessage(state.config.templateWaDaftar, record);
+      const waUrl = `https://wa.me/${normalizeWaPhone(record.noWhatsapp)}?text=${encodeURIComponent(waText)}`;
+
+      openModal(`
+        <div class="bg-white rounded-3xl max-w-md w-full p-6 sm:p-7 shadow-float border border-slate-100 text-center space-y-5">
+          <div class="w-16 h-16 rounded-2xl bg-gradient-to-br from-emerald-500 to-teal-600 text-white flex items-center justify-center mx-auto shadow-lg">
+            ${ICONS.verify}
+          </div>
+          <div>
+            <span class="px-3 py-1 rounded-full text-xs font-extrabold bg-emerald-100 text-emerald-700">PENDAFTARAN BERHASIL</span>
+            <h3 class="font-display font-extrabold text-xl text-slate-900 mt-2">Tiket Pendaftaran Terbit!</h3>
+            <p class="text-xs text-slate-500 mt-1">Simpan Nomor Tiket dan PIN berikut untuk melacak status & masuk ke Portal Peserta.</p>
+          </div>
+
+          <div class="bg-slate-50 rounded-2xl p-4 border border-slate-200 space-y-3">
+            <div class="flex items-center justify-between">
+              <span class="text-xs font-semibold text-slate-500">Nomor Tiket</span>
+              <div class="flex items-center gap-2">
+                <span class="font-display font-extrabold text-base text-indigo-700">${escapeHtml(record.ticketId)}</span>
+                <button type="button" onclick="window.copyTicket('${escapeHtml(record.ticketId)}', 'Nomor Tiket')" class="p-1.5 rounded-lg bg-white border border-slate-200 hover:bg-slate-100 text-slate-600">
+                  ${ICONS.copy}
+                </button>
+              </div>
+            </div>
+            <div class="flex items-center justify-between pt-2 border-t border-slate-200/70">
+              <span class="text-xs font-semibold text-slate-500">PIN Portal Peserta</span>
+              <div class="flex items-center gap-2">
+                <span class="font-display font-extrabold text-base text-emerald-700">${escapeHtml(record.pin)}</span>
+                <button type="button" onclick="window.copyTicket('${escapeHtml(record.pin)}', 'PIN Peserta')" class="p-1.5 rounded-lg bg-white border border-slate-200 hover:bg-slate-100 text-slate-600">
+                  ${ICONS.copy}
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <div class="space-y-2.5">
+            <a
+              href="${waUrl}"
+              target="_blank"
+              rel="noopener noreferrer"
+              class="w-full inline-flex items-center justify-center gap-2 px-5 py-3.5 rounded-2xl bg-[#25D366] hover:bg-[#1ebe5d] text-white font-bold text-sm shadow-md transition"
+            >
+              ${ICONS.whatsapp}
+              <span>Kirim Bukti Tiket ke WhatsApp</span>
+            </a>
+            <button
+              type="button"
+              onclick="window.closeModal(); window.navigateTo('lacak');"
+              class="w-full px-5 py-3 rounded-2xl bg-indigo-50 hover:bg-indigo-100 text-indigo-700 font-bold text-xs transition"
+            >
+              Lihat Timeline Pelacakan Tiket
+            </button>
+          </div>
+        </div>
+      `);
+    }
+
+    window.copyTicket = copyTextToClipboard;
+
+    // =========================================================================
+    // 12. VIEW 3: LACAK TIKET PENDAFTARAN (PUBLIK REAL-TIME STEPPER)
+    // =========================================================================
+    function renderLacakView() {
+      const q = (state.trackedTicketId || "").trim().toUpperCase();
+      const found = q
+        ? state.pendaftar.find(
+            (p) => p.ticketId.toUpperCase() === q || p.nisn === q
+          )
+        : null;
+
+      const meta = found ? STATUS_META[found.statusSeleksi] || STATUS_META.menunggu : null;
+
+      return `
+        <div class="max-w-3xl mx-auto space-y-6">
+          <!-- Search Card -->
+          <div class="glass-card rounded-3xl p-6 sm:p-8 shadow-glass">
+            <div class="flex items-center gap-3.5 mb-5">
+              <div class="w-12 h-12 rounded-2xl bg-gradient-to-br from-violet-500 to-purple-600 text-white flex items-center justify-center shadow-md shrink-0">
+                ${ICONS.ticket}
+              </div>
+              <div>
+                <h2 class="font-display font-extrabold text-xl sm:text-2xl text-slate-900">Lacak Tiket Pendaftaran</h2>
+                <p class="text-xs sm:text-sm text-slate-500">Masukkan Nomor Tiket (contoh: SPMB-2026-001) atau NISN calon murid.</p>
+              </div>
+            </div>
+
+            <form onsubmit="window.handleSearchTicket(event)" class="flex flex-col sm:flex-row gap-3">
+              <input
+                type="text"
+                id="input-track-ticket"
+                value="${escapeHtml(state.trackedTicketId)}"
+                placeholder="Masukkan Nomor Tiket atau NISN..."
+                class="flex-1 px-4 py-3.5 rounded-2xl border border-slate-200 bg-white focus:ring-2 focus:ring-violet-500 text-sm font-semibold uppercase outline-none"
+              />
+              <button
+                type="submit"
+                class="inline-flex items-center justify-center gap-2 px-6 py-3.5 rounded-2xl bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-700 hover:to-indigo-700 text-white font-bold text-sm shadow-md transition"
+              >
+                ${ICONS.search}
+                <span>Lacak Status</span>
+              </button>
+            </form>
+
+            ${
+              IS_PREVIEW
+                ? `
+                  <div class="mt-3 flex flex-wrap items-center gap-2 text-xs text-slate-500">
+                    <span>Contoh cepat (Preview):</span>
+                    <button type="button" onclick="window.quickTrack('SPMB-2026-001')" class="px-2.5 py-1 rounded-lg bg-violet-50 text-violet-700 font-bold hover:bg-violet-100">SPMB-2026-001</button>
+                    <button type="button" onclick="window.quickTrack('SPMB-2026-002')" class="px-2.5 py-1 rounded-lg bg-amber-50 text-amber-700 font-bold hover:bg-amber-100">SPMB-2026-002</button>
+                  </div>
+                `
+                : ""
+            }
+          </div>
+
+          <!-- Hasil Pelacakan -->
+          ${
+            !q
+              ? `
+                <div class="glass-card rounded-3xl p-8 text-center text-slate-500 text-sm">
+                  Silakan masukkan Nomor Tiket Anda pada kolom pencarian di atas untuk melihat progres verifikasi dan seleksi.
+                </div>
+              `
+              : !found
+              ? `
+                <div class="glass-card rounded-3xl p-8 text-center border border-rose-200">
+                  <p class="font-display font-bold text-base text-rose-700">Tiket "${escapeHtml(q)}" Tidak Ditemukan</p>
+                  <p class="text-xs text-slate-500 mt-1">Periksa kembali penulisan nomor tiket atau NISN Anda.</p>
+                </div>
+              `
+              : `
+                <div class="glass-card rounded-3xl p-6 sm:p-8 shadow-glass space-y-6">
+                  <!-- Header Status Tiket -->
+                  <div class="flex flex-wrap items-start justify-between gap-4 pb-5 border-b border-slate-100">
+                    <div>
+                      <div class="flex items-center gap-2">
+                        <span class="px-3 py-1 rounded-full text-xs font-extrabold bg-slate-900 text-white">${escapeHtml(found.ticketId)}</span>
+                        <span class="px-3 py-1 rounded-full text-xs font-bold border ${meta.badgeClass}">${meta.label}</span>
+                      </div>
+                      <h3 class="font-display font-extrabold text-xl text-slate-900 mt-2.5">${escapeHtml(found.namaLengkap)}</h3>
+                      <p class="text-xs text-slate-500 mt-0.5">
+                        NISN: ${escapeHtml(found.nisn)} • Jalur <strong>${escapeHtml(found.jalurPendaftaran)}</strong> • ${escapeHtml(found.pilihanJurusan)}
+                      </p>
+                    </div>
+                    <button
+                      type="button"
+                      onclick="window.navigateTo('portal')"
+                      class="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200 text-xs font-bold transition"
+                    >
+                      ${ICONS.student}
+                      <span>Buka Portal Peserta</span>
+                    </button>
+                  </div>
+
+                  <!-- Catatan Panitia -->
+                  ${
+                    found.catatanAdmin
+                      ? `
+                        <div class="p-4 rounded-2xl ${
+                          found.statusSeleksi === "perlu_perbaikan"
+                            ? "bg-amber-50 border border-amber-200 text-amber-900"
+                            : "bg-slate-50 border border-slate-200 text-slate-800"
+                        }">
+                          <p class="text-[11px] font-extrabold uppercase tracking-wider opacity-75">Catatan Resmi Panitia</p>
+                          <p class="text-sm font-medium mt-1">${escapeHtml(found.catatanAdmin)}</p>
+                        </div>
+                      `
+                      : ""
+                  }
+
+                  <!-- Stepper Timeline -->
+                  <div>
+                    <h4 class="font-display font-extrabold text-sm text-slate-900 mb-4">Riwayat Progres Pendaftaran</h4>
+                    <div class="space-y-4 relative before:absolute before:left-[15px] before:top-2 before:bottom-2 before:w-0.5 before:bg-slate-200">
+                      ${(found.timeline || [])
+                        .slice()
+                        .reverse()
+                        .map((step, idx) => {
+                          const stepMeta = STATUS_META[step.status] || STATUS_META.menunggu;
+                          return `
+                            <div class="relative pl-10">
+                              <span class="absolute left-0 top-1 w-8 h-8 rounded-full bg-gradient-to-br ${stepMeta.gradient} text-white flex items-center justify-center shadow-sm ring-4 ring-white text-xs font-bold">
+                                ${(found.timeline || []).length - idx}
+                              </span>
+                              <div class="p-4 rounded-2xl bg-white border border-slate-100 shadow-xs">
+                                <div class="flex flex-wrap items-center justify-between gap-1">
+                                  <p class="font-bold text-sm text-slate-900">${escapeHtml(step.judul)}</p>
+                                  <span class="text-[11px] font-medium text-slate-400">${formatTanggalIndo(step.waktu)}</span>
+                                </div>
+                                <p class="text-xs text-slate-600 mt-1">${escapeHtml(step.deskripsi)}</p>
+                              </div>
+                            </div>
+                          `;
+                        })
+                        .join("")}
+                    </div>
+                  </div>
+                </div>
+              `
+          }
+        </div>
+      `;
+    }
+
+    window.handleSearchTicket = function (e) {
+      e.preventDefault();
+      const input = document.getElementById("input-track-ticket");
+      state.trackedTicketId = input ? input.value.trim() : "";
+      renderCurrentView();
+    };
+
+    window.quickTrack = function (ticketId) {
+      state.trackedTicketId = ticketId;
+      renderCurrentView();
+    };
+
+    // =========================================================================
+    // 13. VIEW 4: PORTAL PESERTA (LOGIN FIRESTORE TIKET & PIN + KARTU CETAK)
+    // =========================================================================
+    function renderPortalPesertaView() {
+      // Jika belum login sebagai peserta, tampilkan form login validasi Firestore
+      if (!state.studentSession) {
+        return `
+          <div class="max-w-md mx-auto">
+            <div class="glass-card rounded-3xl p-6 sm:p-8 shadow-glass space-y-5">
+              <div class="text-center">
+                <div class="w-14 h-14 rounded-2xl bg-gradient-to-br from-emerald-500 to-teal-600 text-white flex items-center justify-center mx-auto shadow-md mb-3">
+                  ${ICONS.student}
+                </div>
+                <h2 class="font-display font-extrabold text-xl text-slate-900">Portal Calon Murid</h2>
+                <p class="text-xs text-slate-500 mt-1">Masuk menggunakan Nomor Tiket & PIN 6 digit untuk mencetak kartu peserta atau memperbaiki berkas.</p>
+              </div>
+
+              <form onsubmit="window.handleStudentLogin(event)" class="space-y-4">
+                <div>
+                  <label class="block text-xs font-bold text-slate-700 mb-1.5">Nomor Tiket Pendaftaran</label>
+                  <input type="text" name="ticketId" required placeholder="Contoh: SPMB-2026-001" class="w-full px-4 py-3 rounded-xl border border-slate-200 bg-white text-sm font-semibold uppercase outline-none focus:ring-2 focus:ring-emerald-500" />
+                </div>
+                <div>
+                  <label class="block text-xs font-bold text-slate-700 mb-1.5">PIN Akses (6 Digit)</label>
+                  <input type="password" name="pin" required maxlength="6" placeholder="••••••" class="w-full px-4 py-3 rounded-xl border border-slate-200 bg-white text-sm font-semibold outline-none focus:ring-2 focus:ring-emerald-500" />
+                </div>
+                <button type="submit" class="w-full py-3.5 rounded-2xl bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white font-bold text-sm shadow-md transition">
+                  Masuk ke Portal Peserta
+                </button>
+              </form>
+
+              ${
+                IS_PREVIEW
+                  ? `
+                    <div class="p-3.5 rounded-2xl bg-amber-50 border border-amber-200 text-xs text-amber-900 space-y-1">
+                      <p class="font-bold">Akun Demo Peserta (Mode Preview):</p>
+                      <p>• Tiket: <strong>SPMB-2026-001</strong> | PIN: <strong>123456</strong></p>
+                      <p>• Tiket: <strong>SPMB-2026-002</strong> | PIN: <strong>654321</strong> (Status Perlu Perbaikan)</p>
+                    </div>
+                  `
+                  : ""
+              }
+            </div>
+          </div>
+        `;
+      }
+
+      const s = state.studentSession;
+      const cfg = state.config;
+      const meta = STATUS_META[s.statusSeleksi] || STATUS_META.menunggu;
+      const myLogs = state.waLogs.filter((l) => l.ticketId === s.ticketId);
+
+      return `
+        <div class="max-w-4xl mx-auto space-y-6">
+          <!-- Top Bar Sesi Peserta -->
+          <div class="glass-card rounded-3xl p-5 flex flex-wrap items-center justify-between gap-3 shadow-glass no-print">
+            <div>
+              <span class="text-xs font-bold text-emerald-700 bg-emerald-100 px-2.5 py-0.5 rounded-full">Portal Peserta Aktif</span>
+              <h2 class="font-display font-extrabold text-lg text-slate-900 mt-1">${escapeHtml(s.namaLengkap)}</h2>
+            </div>
+            <div class="flex items-center gap-2.5">
+              <button
+                type="button"
+                onclick="window.print()"
+                class="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold shadow-sm transition"
+              >
+                ${ICONS.print}
+                <span>Cetak Kartu Bukti</span>
+              </button>
+              <button
+                type="button"
+                onclick="window.handleStudentLogout()"
+                class="inline-flex items-center gap-1.5 px-3.5 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold transition"
+              >
+                ${ICONS.logout}
+                <span>Keluar</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- KARTU BUKTI PENDAFTARAN DIGITAL (PRINTABLE AREA) -->
+          <div id="printable-card-area" class="bg-white rounded-3xl p-6 sm:p-8 shadow-glass border-2 border-slate-200 space-y-5">
+            <!-- Kop Sekolah -->
+            <div class="flex items-center gap-4 pb-4 border-b-2 border-slate-800">
+              <div class="w-16 h-16 rounded-2xl bg-indigo-600 text-white flex items-center justify-center shrink-0 overflow-hidden">
+                ${renderLogoElement()}
+              </div>
+              <div class="flex-1 min-w-0">
+                <p class="text-[11px] font-extrabold uppercase tracking-wider text-indigo-700">Kartu Bukti Pendaftaran SPMB Online • TA ${escapeHtml(cfg.tahunAjaran)}</p>
+                <h3 class="font-display font-extrabold text-lg sm:text-xl text-slate-900 truncate">${escapeHtml(cfg.namaSekolah)}</h3>
+                <p class="text-xs text-slate-600">${cfg.npsn && cfg.npsn !== "-" ? `NPSN: ${escapeHtml(cfg.npsn)} • ` : ""}${escapeHtml(cfg.alamatSekolah)}</p>
+              </div>
+              <div class="text-right shrink-0">
+                <span class="block text-[10px] font-bold uppercase text-slate-400">Nomor Tiket</span>
+                <span class="font-display font-extrabold text-base sm:text-lg text-indigo-700">${escapeHtml(s.ticketId)}</span>
+              </div>
+            </div>
+
+            <!-- Isi Biodata Kartu -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
+              <div class="space-y-2">
+                <div><span class="text-xs text-slate-400 block">Nama Lengkap</span><strong class="text-slate-900">${escapeHtml(s.namaLengkap)}</strong></div>
+                <div><span class="text-xs text-slate-400 block">NISN</span><strong class="text-slate-900">${escapeHtml(s.nisn)}</strong></div>
+                <div><span class="text-xs text-slate-400 block">Tempat, Tanggal Lahir</span><strong class="text-slate-900">${escapeHtml(s.tempatTanggalLahir)}</strong></div>
+                <div><span class="text-xs text-slate-400 block">Asal Sekolah</span><strong class="text-slate-900">${escapeHtml(s.asalSekolah)}</strong></div>
+              </div>
+              <div class="space-y-2">
+                <div><span class="text-xs text-slate-400 block">Jalur Pendaftaran</span><strong class="text-indigo-700">${escapeHtml(s.jalurPendaftaran)}</strong></div>
+                <div><span class="text-xs text-slate-400 block">Pilihan Peminatan / Jurusan</span><strong class="text-slate-900">${escapeHtml(s.pilihanJurusan)}</strong></div>
+                <div><span class="text-xs text-slate-400 block">Nama Wali / No. WhatsApp</span><strong class="text-slate-900">${escapeHtml(s.namaWali)} (${escapeHtml(s.noWhatsapp)})</strong></div>
+                <div>
+                  <span class="text-xs text-slate-400 block">Status Seleksi Terkini</span>
+                  <span class="inline-block mt-0.5 px-2.5 py-0.5 rounded-full text-xs font-extrabold border ${meta.badgeClass}">${meta.label}</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Pengesahan Panitia -->
+            <div class="pt-4 border-t border-slate-200 flex flex-wrap items-end justify-between gap-4 text-xs text-slate-600">
+              <div>
+                <p>Tanggal Daftar: <strong>${formatTanggalIndo(s.createdAt)}</strong></p>
+                <p class="mt-0.5">PIN Portal Peserta: <strong>${escapeHtml(s.pin)}</strong></p>
+              </div>
+              <div class="text-right">
+                <p>Mengetahui, Ketua Panitia SPMB</p>
+                <p class="font-bold text-slate-900 mt-8 underline">${escapeHtml(cfg.namaKetuaPanitia || "Ketua Panitia SPMB")}</p>
+                ${cfg.nipKetuaPanitia && cfg.nipKetuaPanitia !== "-" ? `<p>NIP. ${escapeHtml(cfg.nipKetuaPanitia)}</p>` : ""}
+              </div>
+            </div>
+          </div>
+
+          <!-- FORM PERBAIKAN DATA / BERKAS OLEH PESERTA -->
+          <div class="glass-card rounded-3xl p-6 shadow-glass space-y-4 no-print">
+            <div class="flex items-center justify-between">
+              <div>
+                <h3 class="font-display font-extrabold text-base text-slate-900">Pembaruan Data & Tautan Berkas</h3>
+                <p class="text-xs text-slate-500">Gunakan formulir ini jika diminta panitia untuk memperbaiki berkas Google Drive atau nomor WhatsApp.</p>
+              </div>
+              ${
+                s.statusSeleksi === "perlu_perbaikan"
+                  ? `<span class="px-3 py-1 rounded-full text-xs font-extrabold bg-amber-100 text-amber-800">Wajib Diperbarui</span>`
+                  : ""
+              }
+            </div>
+
+            <form onsubmit="window.handleStudentUpdateData(event)" class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <label class="block text-xs font-bold text-slate-700 mb-1">Nomor WhatsApp</label>
+                <input type="tel" name="noWhatsapp" value="${escapeHtml(s.noWhatsapp)}" required class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 bg-white text-sm" />
+              </div>
+              <div>
+                <label class="block text-xs font-bold text-slate-700 mb-1">Asal Sekolah</label>
+                <input type="text" name="asalSekolah" value="${escapeHtml(s.asalSekolah)}" required class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 bg-white text-sm" />
+              </div>
+              <div class="sm:col-span-2">
+                <label class="block text-xs font-bold text-slate-700 mb-1">Tautan Folder Berkas Google Drive</label>
+                <input type="url" name="linkBerkas" value="${escapeHtml(s.linkBerkas)}" required class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 bg-white text-sm" />
+              </div>
+              <div class="sm:col-span-2 flex justify-end">
+                <button type="submit" class="px-5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold shadow-sm transition">
+                  Simpan Perubahan & Ajukan Verifikasi Ulang
+                </button>
+              </div>
+            </form>
+          </div>
+
+          <!-- RIWAYAT NOTIFIKASI WA UNTUK PESERTA INI -->
+          <div class="glass-card rounded-3xl p-6 shadow-glass space-y-3 no-print">
+            <h3 class="font-display font-extrabold text-base text-slate-900">Riwayat Notifikasi WhatsApp</h3>
+            ${
+              myLogs.length === 0
+                ? `<p class="text-xs text-slate-500">Belum ada riwayat notifikasi WhatsApp yang tercatat untuk tiket ini.</p>`
+                : myLogs
+                    .map(
+                      (log) => `
+                      <div class="p-3.5 rounded-2xl bg-emerald-50/60 border border-emerald-100 text-xs space-y-1">
+                        <div class="flex items-center justify-between font-bold text-emerald-900">
+                          <span>${escapeHtml(log.kategoriNotif)}</span>
+                          <span class="text-[11px] font-normal text-slate-500">${formatTanggalIndo(log.waktuKirim)}</span>
+                        </div>
+                        <p class="text-slate-700">${escapeHtml(log.isiPesan)}</p>
+                      </div>
+                    `
+                    )
+                    .join("")
+            }
+          </div>
+        </div>
+      `;
+    }
+
+    window.handleStudentLogin = async function (e) {
+      e.preventDefault();
+      const fd = new FormData(e.target);
+      const ticketInput = String(fd.get("ticketId") || "").trim().toUpperCase();
+      const pinInput = String(fd.get("pin") || "").trim();
+
+      let matched = null;
+
+      if (IS_PREVIEW) {
+        matched = state.pendaftar.find(
+          (p) => p.ticketId.toUpperCase() === ticketInput && p.pin === pinInput
+        );
+      } else {
+        try {
+          const docRef = doc(fbDb, "pendaftar", ticketInput);
+          const snap = await getDoc(docRef);
+          if (snap.exists() && snap.data().pin === pinInput) {
+            matched = { ticketId: snap.id, ...snap.data() };
+          }
+        } catch (err) {
+          console.error("Login peserta error:", err);
+          showToast("Terjadi gangguan koneksi saat memverifikasi tiket.", "error");
+          return;
+        }
+      }
+
+      if (!matched) {
+        showToast("Nomor Tiket atau PIN 6 digit tidak sesuai.", "error");
+        return;
+      }
+
+      state.studentSession = matched;
+      showToast(`Selamat datang, ${matched.namaLengkap}!`, "success");
+      renderCurrentView();
+    };
+
+    window.handleStudentLogout = function () {
+      state.studentSession = null;
+      renderCurrentView();
+    };
+
+    window.handleStudentUpdateData = async function (e) {
+      e.preventDefault();
+      if (!state.studentSession) return;
+      const fd = new FormData(e.target);
+      const nowIso = new Date().toISOString();
+      const s = state.studentSession;
+
+      const nextStatus = s.statusSeleksi === "perlu_perbaikan" ? "menunggu" : s.statusSeleksi;
+      const updatedTimeline = [
+        ...(s.timeline || []),
+        {
+          waktu: nowIso,
+          judul: "Pembaruan Data oleh Peserta",
+          deskripsi: "Calon murid memperbarui tautan berkas/kontak melalui Portal Peserta.",
+          status: nextStatus
+        }
+      ];
+
+      const patch = {
+        noWhatsapp: normalizeWaPhone(fd.get("noWhatsapp")),
+        asalSekolah: String(fd.get("asalSekolah") || "").trim(),
+        linkBerkas: String(fd.get("linkBerkas") || "").trim(),
+        statusSeleksi: nextStatus,
+        timeline: updatedTimeline,
+        updatedAt: nowIso
+      };
+
+      try {
+        if (IS_PREVIEW) {
+          const idx = state.pendaftar.findIndex((p) => p.ticketId === s.ticketId);
+          if (idx !== -1) {
+            state.pendaftar[idx] = { ...state.pendaftar[idx], ...patch };
+            state.studentSession = state.pendaftar[idx];
+          }
+        } else {
+          await updateDoc(doc(fbDb, "pendaftar", s.ticketId), patch);
+        }
+        showToast("Data & berkas berhasil diperbarui!", "success");
+        renderCurrentView();
+      } catch (err) {
+        console.error("Update peserta gagal:", err);
+        showToast("Gagal menyimpan perubahan data.", "error");
+      }
+    };
+
+    // =========================================================================
+    // 14. LOGIN ADMIN PANITIA (FIREBASE AUTHENTICATION)
+    // =========================================================================
+    window.openAdminLoginModal = function () {
+      openModal(`
+        <div class="bg-white rounded-3xl max-w-md w-full p-6 sm:p-7 shadow-float border border-slate-100 space-y-5">
+          <div class="flex items-center justify-between">
+            <div class="flex items-center gap-3">
+              <div class="w-11 h-11 rounded-2xl bg-gradient-to-br from-slate-800 to-indigo-900 text-white flex items-center justify-center shadow-md">
+                ${ICONS.shield}
+              </div>
+              <div>
+                <h3 class="font-display font-extrabold text-lg text-slate-900">Login Panitia SPMB</h3>
+                <p class="text-xs text-slate-500">Autentikasi resmi Administrator sekolah</p>
+              </div>
+            </div>
+            <button type="button" onclick="window.closeModal()" class="text-slate-400 hover:text-slate-700 text-xl font-bold">&times;</button>
+          </div>
+
+          <form onsubmit="window.handleAdminLoginSubmit(event)" class="space-y-4">
+            <div>
+              <label class="block text-xs font-bold text-slate-700 mb-1.5">Email Admin</label>
+              <input type="email" id="admin-login-email" name="email" required placeholder="admin@sekolah.sch.id" class="w-full px-4 py-3 rounded-xl border border-slate-200 text-sm outline-none focus:ring-2 focus:ring-indigo-500" />
+            </div>
+            <div>
+              <label class="block text-xs font-bold text-slate-700 mb-1.5">Password</label>
+              <input type="password" id="admin-login-pass" name="password" required placeholder="••••••••" class="w-full px-4 py-3 rounded-xl border border-slate-200 text-sm outline-none focus:ring-2 focus:ring-indigo-500" />
+            </div>
+            <button type="submit" id="btn-admin-login-submit" class="w-full py-3.5 rounded-2xl bg-gradient-to-r from-indigo-600 to-blue-600 hover:from-indigo-700 hover:to-blue-700 text-white font-bold text-sm shadow-md transition">
+              Masuk Dashboard Panitia
+            </button>
+          </form>
+
+          ${
+            IS_PREVIEW
+              ? `
+                <div class="p-3.5 rounded-2xl bg-indigo-50 border border-indigo-100 text-xs text-indigo-900 flex items-center justify-between gap-2">
+                  <div>
+                    <p class="font-bold">Demo Admin (Mode Preview)</p>
+                    <p class="text-[11px] opacity-80">admin@spmb.sch.id / admin123</p>
+                  </div>
+                  <button type="button" onclick="window.fillPreviewAdmin()" class="px-3 py-1.5 rounded-xl bg-indigo-600 text-white font-bold text-[11px] shrink-0">
+                    Isi Otomatis
+                  </button>
+                </div>
+              `
+              : ""
+          }
+        </div>
+      `);
+    };
+
+    if (IS_PREVIEW) {
+      window.fillPreviewAdmin = function () {
+        const e = document.getElementById("admin-login-email");
+        const p = document.getElementById("admin-login-pass");
+        if (e) e.value = "admin@spmb.sch.id";
+        if (p) p.value = "admin123";
+      };
+    }
+
+    window.handleAdminLoginSubmit = async function (e) {
+      e.preventDefault();
+      const fd = new FormData(e.target);
+      const email = String(fd.get("email") || "").trim();
+      const password = String(fd.get("password") || "");
+
+      if (IS_PREVIEW) {
+        if (email === "admin@spmb.sch.id" && password === "admin123") {
+          state.isAdmin = true;
+          state.adminUser = { email };
+          state.activeTab = "admin_dashboard";
+          closeModal();
+          showToast("Login Admin berhasil (Mode Preview).", "success");
+          renderChrome();
+          renderCurrentView();
+        } else {
+          showToast("Email atau password demo tidak cocok.", "error");
+        }
+        return;
+      }
+
+      const btn = document.getElementById("btn-admin-login-submit");
+      if (btn) {
+        btn.disabled = true;
+        btn.textContent = "Memverifikasi...";
+      }
+
+      try {
+        await signInWithEmailAndPassword(fbAuth, email, password);
+        state.activeTab = "admin_dashboard";
+        closeModal();
+        showToast("Berhasil masuk sebagai Panitia SPMB!", "success");
+      } catch (err) {
+        console.error("Firebase Auth error:", err);
+        showToast("Login gagal: Email atau password admin tidak terdaftar.", "error");
+      } finally {
+        if (btn) {
+          btn.disabled = false;
+          btn.textContent = "Masuk Dashboard Panitia";
+        }
+      }
+    };
+
+    window.handleAdminLogout = async function () {
+      if (IS_PREVIEW) {
+        state.isAdmin = false;
+        state.adminUser = null;
+        state.activeTab = "beranda";
+        showToast("Anda telah keluar dari panel panitia.", "info");
+        renderChrome();
+        renderCurrentView();
+        return;
+      }
+
+      try {
+        await signOut(fbAuth);
+        showToast("Berhasil logout dari akun Admin.", "info");
+      } catch (err) {
+        showToast("Gagal logout.", "error");
+      }
+    };
+
+    // =========================================================================
+    // 15. VIEW 5: ADMIN DASHBOARD ANALITIK PANITIA
+    // =========================================================================
+    function renderAdminDashboardView() {
+      const total = state.pendaftar.length;
+      const menunggu = state.pendaftar.filter((p) => p.statusSeleksi === "menunggu" || p.statusSeleksi === "perlu_perbaikan").length;
+      const terverifikasi = state.pendaftar.filter((p) => p.statusSeleksi === "terverifikasi").length;
+      const lulus = state.pendaftar.filter((p) => p.statusSeleksi === "lulus").length;
+      const quotas = getQuotaStats();
+      const antrean = state.pendaftar.filter((p) => p.statusSeleksi === "menunggu" || p.statusSeleksi === "perlu_perbaikan").slice(0, 5);
+
+      return `
+        <div class="space-y-6">
+          <div class="flex flex-wrap items-center justify-between gap-3">
+            <div>
+              <h2 class="font-display font-extrabold text-2xl text-slate-900">Dashboard Analitik Panitia</h2>
+              <p class="text-xs sm:text-sm text-slate-500">Ringkasan pendaftaran real-time ${escapeHtml(state.config.namaSekolah)}</p>
+            </div>
+            <div class="flex items-center gap-2">
+              <button type="button" onclick="window.navigateTo('admin_verifikasi')" class="px-4 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold shadow-sm">
+                Verifikasi Pendaftar (${menunggu})
+              </button>
+              <button type="button" onclick="window.navigateTo('admin_pengaturan')" class="px-4 py-2.5 rounded-xl bg-white border border-slate-200 text-slate-800 text-xs font-bold">
+                Identitas & Jadwal
+              </button>
+            </div>
+          </div>
+
+          <!-- KPI Bento Cards -->
+          <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
+            <div class="glass-card rounded-3xl p-5 shadow-glass">
+              <div class="w-11 h-11 rounded-2xl bg-gradient-to-br from-indigo-500 to-blue-600 text-white flex items-center justify-center shadow-md mb-3">
+                ${ICONS.users}
+              </div>
+              <p class="text-xs font-bold text-slate-500">Total Pendaftar</p>
+              <p class="font-display font-extrabold text-2xl sm:text-3xl text-slate-900 mt-1">${total}</p>
+            </div>
+            <div class="glass-card rounded-3xl p-5 shadow-glass">
+              <div class="w-11 h-11 rounded-2xl bg-gradient-to-br from-amber-500 to-orange-500 text-white flex items-center justify-center shadow-md mb-3">
+                ${ICONS.clock}
+              </div>
+              <p class="text-xs font-bold text-slate-500">Perlu Tindakan</p>
+              <p class="font-display font-extrabold text-2xl sm:text-3xl text-amber-600 mt-1">${menunggu}</p>
+            </div>
+            <div class="glass-card rounded-3xl p-5 shadow-glass">
+              <div class="w-11 h-11 rounded-2xl bg-gradient-to-br from-violet-500 to-purple-600 text-white flex items-center justify-center shadow-md mb-3">
+                ${ICONS.verify}
+              </div>
+              <p class="text-xs font-bold text-slate-500">Terverifikasi</p>
+              <p class="font-display font-extrabold text-2xl sm:text-3xl text-violet-700 mt-1">${terverifikasi}</p>
+            </div>
+            <div class="glass-card rounded-3xl p-5 shadow-glass">
+              <div class="w-11 h-11 rounded-2xl bg-gradient-to-br from-emerald-500 to-teal-600 text-white flex items-center justify-center shadow-md mb-3">
+                ${ICONS.sparkles}
+              </div>
+              <p class="text-xs font-bold text-slate-500">Lulus Seleksi</p>
+              <p class="font-display font-extrabold text-2xl sm:text-3xl text-emerald-600 mt-1">${lulus}</p>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+            <!-- Keterisian Kuota -->
+            <div class="lg:col-span-5 glass-card rounded-3xl p-6 shadow-glass space-y-4">
+              <h3 class="font-display font-extrabold text-base text-slate-900">Keterisian Kuota per Jalur</h3>
+              <div class="space-y-4">
+                ${quotas
+                  .map(
+                    (q) => `
+                    <div>
+                      <div class="flex items-center justify-between text-xs font-bold mb-1">
+                        <span class="text-slate-800">Jalur ${q.nama}</span>
+                        <span class="text-slate-500">${q.terisi} / ${q.kuota} (${q.pct}%)</span>
+                      </div>
+                      <div class="w-full h-2.5 bg-slate-100 rounded-full overflow-hidden">
+                        <div class="h-full ${q.barColor} rounded-full" style="width: ${q.pct}%"></div>
+                      </div>
+                    </div>
+                  `
+                  )
+                  .join("")}
+              </div>
+            </div>
+
+            <!-- Antrean Menunggu Verifikasi -->
+            <div class="lg:col-span-7 glass-card rounded-3xl p-6 shadow-glass space-y-4">
+              <div class="flex items-center justify-between">
+                <h3 class="font-display font-extrabold text-base text-slate-900">Antrean Verifikasi Terbaru</h3>
+                <button type="button" onclick="window.navigateTo('admin_verifikasi')" class="text-xs font-bold text-indigo-600 hover:underline">Lihat Semua</button>
+              </div>
+              ${
+                antrean.length === 0
+                  ? `<div class="p-6 text-center rounded-2xl bg-slate-50 text-xs text-slate-500">Tidak ada antrean pendaftar yang menunggu verifikasi.</div>`
+                  : `<div class="space-y-2.5">
+                      ${antrean
+                        .map((item) => {
+                          const meta = STATUS_META[item.statusSeleksi] || STATUS_META.menunggu;
+                          return `
+                            <div class="p-3.5 rounded-2xl bg-white border border-slate-100 flex items-center justify-between gap-3">
+                              <div class="min-w-0">
+                                <div class="flex items-center gap-2">
+                                  <span class="text-xs font-extrabold text-indigo-700">${escapeHtml(item.ticketId)}</span>
+                                  <span class="px-2 py-0.5 rounded-full text-[10px] font-bold border ${meta.badgeClass}">${meta.label}</span>
+                                </div>
+                                <p class="font-bold text-sm text-slate-900 truncate mt-0.5">${escapeHtml(item.namaLengkap)}</p>
+                                <p class="text-[11px] text-slate-500">Jalur ${escapeHtml(item.jalurPendaftaran)} • ${escapeHtml(item.asalSekolah)}</p>
+                              </div>
+                              <button
+                                type="button"
+                                onclick="window.openVerificationModal('${escapeHtml(item.ticketId)}')"
+                                class="px-3.5 py-2 rounded-xl bg-indigo-50 hover:bg-indigo-100 text-indigo-700 text-xs font-bold shrink-0"
+                              >
+                                Proses
+                              </button>
+                            </div>
+                          `;
+                        })
+                        .join("")}
+                    </div>`
+              }
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    // =========================================================================
+    // 16. VIEW 6: VERIFIKASI PENDAFTAR & NOTIFIKASI WHATSAPP (ADMIN)
+    // =========================================================================
+    function renderAdminVerifikasiView() {
+      const q = state.adminSearchQuery.toLowerCase();
+      const filtered = state.pendaftar.filter((p) => {
+        const matchStatus = state.adminFilterStatus === "semua" || p.statusSeleksi === state.adminFilterStatus;
+        const matchJalur = state.adminFilterJalur === "semua" || p.jalurPendaftaran === state.adminFilterJalur;
+        const matchQuery =
+          !q ||
+          p.namaLengkap.toLowerCase().includes(q) ||
+          p.ticketId.toLowerCase().includes(q) ||
+          p.nisn.includes(q);
+        return matchStatus && matchJalur && matchQuery;
+      });
+
+      return `
+        <div class="space-y-6">
+          <div class="flex flex-wrap items-center justify-between gap-3">
+            <div>
+              <h2 class="font-display font-extrabold text-2xl text-slate-900">Verifikasi Pendaftar & Notifikasi WA</h2>
+              <p class="text-xs sm:text-sm text-slate-500">Periksa berkas calon murid, tetapkan status seleksi, dan kirim notifikasi WhatsApp otomatis.</p>
+            </div>
+          </div>
+
+          <!-- Filter & Search Bar -->
+          <div class="glass-card rounded-3xl p-4 sm:p-5 shadow-glass grid grid-cols-1 sm:grid-cols-12 gap-3">
+            <div class="sm:col-span-6">
+              <input
+                type="text"
+                value="${escapeHtml(state.adminSearchQuery)}"
+                oninput="window.updateAdminFilter('query', this.value)"
+                placeholder="Cari Nama, Nomor Tiket, atau NISN..."
+                class="w-full px-4 py-2.5 rounded-xl border border-slate-200 bg-white text-sm outline-none focus:ring-2 focus:ring-indigo-500"
+              />
+            </div>
+            <div class="sm:col-span-3">
+              <select onchange="window.updateAdminFilter('jalur', this.value)" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 bg-white text-sm outline-none">
+                <option value="semua" ${state.adminFilterJalur === "semua" ? "selected" : ""}>Semua Jalur</option>
+                <option value="Zonasi" ${state.adminFilterJalur === "Zonasi" ? "selected" : ""}>Jalur Zonasi</option>
+                <option value="Prestasi" ${state.adminFilterJalur === "Prestasi" ? "selected" : ""}>Jalur Prestasi</option>
+                <option value="Afirmasi" ${state.adminFilterJalur === "Afirmasi" ? "selected" : ""}>Jalur Afirmasi</option>
+                <option value="Mutasi" ${state.adminFilterJalur === "Mutasi" ? "selected" : ""}>Jalur Mutasi</option>
+              </select>
+            </div>
+            <div class="sm:col-span-3">
+              <select onchange="window.updateAdminFilter('status', this.value)" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 bg-white text-sm outline-none">
+                <option value="semua" ${state.adminFilterStatus === "semua" ? "selected" : ""}>Semua Status</option>
+                <option value="menunggu" ${state.adminFilterStatus === "menunggu" ? "selected" : ""}>Menunggu Verifikasi</option>
+                <option value="perlu_perbaikan" ${state.adminFilterStatus === "perlu_perbaikan" ? "selected" : ""}>Perlu Perbaikan</option>
+                <option value="terverifikasi" ${state.adminFilterStatus === "terverifikasi" ? "selected" : ""}>Terverifikasi</option>
+                <option value="lulus" ${state.adminFilterStatus === "lulus" ? "selected" : ""}>Lulus Seleksi</option>
+                <option value="tidak_lulus" ${state.adminFilterStatus === "tidak_lulus" ? "selected" : ""}>Tidak Lulus</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Daftar Pendaftar -->
+          ${
+            filtered.length === 0
+              ? `
+                <div class="glass-card rounded-3xl p-10 text-center space-y-2">
+                  <p class="font-display font-bold text-base text-slate-800">Belum Ada Data Pendaftar</p>
+                  <p class="text-xs text-slate-500">Data pendaftar yang masuk melalui formulir online akan tampil secara real-time di sini.</p>
+                </div>
+              `
+              : `
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  ${filtered
+                    .map((p) => {
+                      const meta = STATUS_META[p.statusSeleksi] || STATUS_META.menunggu;
+                      return `
+                        <div class="glass-card rounded-3xl p-5 shadow-glass flex flex-col justify-between gap-4">
+                          <div>
+                            <div class="flex items-center justify-between gap-2">
+                              <span class="px-2.5 py-1 rounded-lg bg-slate-900 text-white text-xs font-extrabold">${escapeHtml(p.ticketId)}</span>
+                              <span class="px-2.5 py-1 rounded-full text-[11px] font-bold border ${meta.badgeClass}">${meta.label}</span>
+                            </div>
+                            <h3 class="font-display font-extrabold text-base text-slate-900 mt-3">${escapeHtml(p.namaLengkap)}</h3>
+                            <p class="text-xs text-slate-500 mt-0.5">NISN: ${escapeHtml(p.nisn)} • ${escapeHtml(p.asalSekolah)}</p>
+                            <div class="mt-3 flex flex-wrap gap-1.5 text-[11px] font-semibold">
+                              <span class="px-2.5 py-1 rounded-lg bg-indigo-50 text-indigo-700">Jalur ${escapeHtml(p.jalurPendaftaran)}</span>
+                              <span class="px-2.5 py-1 rounded-lg bg-slate-100 text-slate-700">${escapeHtml(p.pilihanJurusan)}</span>
+                            </div>
+                            ${
+                              p.catatanAdmin
+                                ? `<p class="text-xs text-slate-600 bg-slate-50 p-2.5 rounded-xl mt-3 border border-slate-100 line-clamp-2">${escapeHtml(p.catatanAdmin)}</p>`
+                                : ""
+                            }
+                          </div>
+
+                          <div class="pt-3 border-t border-slate-100 flex items-center justify-between gap-2">
+                            <a
+                              href="${escapeHtml(p.linkBerkas)}"
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              class="text-xs font-bold text-indigo-600 hover:underline"
+                            >
+                              Buka Berkas Drive &nearr;
+                            </a>
+                            <button
+                              type="button"
+                              onclick="window.openVerificationModal('${escapeHtml(p.ticketId)}')"
+                              class="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-gradient-to-r from-indigo-600 to-blue-600 text-white text-xs font-bold shadow-sm hover:opacity-95"
+                            >
+                              ${ICONS.verify}
+                              <span>Verifikasi & Kirim WA</span>
+                            </button>
+                          </div>
+                        </div>
+                      `;
+                    })
+                    .join("")}
+                </div>
+              `
+          }
+
+          <!-- Log Riwayat Notifikasi WhatsApp -->
+          <div class="glass-card rounded-3xl p-6 shadow-glass space-y-3">
+            <div class="flex items-center gap-2.5">
+              <span class="w-9 h-9 rounded-xl bg-emerald-500 text-white flex items-center justify-center shadow-xs">
+                ${ICONS.whatsapp}
+              </span>
+              <div>
+                <h3 class="font-display font-extrabold text-base text-slate-900">Log Pengiriman Notifikasi WhatsApp</h3>
+                <p class="text-xs text-slate-500">Riwayat pesan WhatsApp yang dikirimkan panitia kepada calon murid.</p>
+              </div>
+            </div>
+            ${
+              state.waLogs.length === 0
+                ? `<p class="text-xs text-slate-500 pt-2">Belum ada aktivitas pengiriman notifikasi WhatsApp.</p>`
+                : `<div class="space-y-2 pt-2 max-h-64 overflow-y-auto">
+                    ${state.waLogs
+                      .slice(0, 15)
+                      .map(
+                        (log) => `
+                        <div class="p-3 rounded-2xl bg-slate-50 border border-slate-100 text-xs flex flex-wrap items-center justify-between gap-2">
+                          <div class="min-w-0 flex-1">
+                            <p class="font-bold text-slate-900">${escapeHtml(log.namaPenerima)} <span class="text-indigo-600">(${escapeHtml(log.ticketId)})</span> • <span class="text-emerald-700">${escapeHtml(log.kategoriNotif)}</span></p>
+                            <p class="text-slate-600 truncate mt-0.5">${escapeHtml(log.isiPesan)}</p>
+                          </div>
+                          <div class="text-right text-[11px] text-slate-400 shrink-0">
+                            <span class="block font-semibold text-slate-600">${escapeHtml(log.metodeKirim)}</span>
+                            <span>${formatTanggalIndo(log.waktuKirim)}</span>
+                          </div>
+                        </div>
+                      `
+                      )
+                      .join("")}
+                  </div>`
+            }
+          </div>
+        </div>
+      `;
+    }
+
+    window.updateAdminFilter = function (key, value) {
+      if (key === "query") state.adminSearchQuery = value;
+      if (key === "jalur") state.adminFilterJalur = value;
+      if (key === "status") state.adminFilterStatus = value;
+      renderCurrentView();
+    };
+
+    window.openVerificationModal = function (ticketId) {
+      const p = state.pendaftar.find((item) => item.ticketId === ticketId);
+      if (!p) return;
+
+      const hasGateway = Boolean(state.config.waGatewayEndpoint && state.config.waApiToken);
+
+      openModal(`
+        <div class="bg-white rounded-3xl max-w-lg w-full p-6 sm:p-7 shadow-float border border-slate-100 space-y-5 max-h-[90vh] overflow-y-auto">
+          <div class="flex items-start justify-between gap-3 pb-3 border-b border-slate-100">
+            <div>
+              <span class="px-2.5 py-0.5 rounded-full text-[11px] font-extrabold bg-indigo-100 text-indigo-700">${escapeHtml(p.ticketId)} • PIN: ${escapeHtml(p.pin)}</span>
+              <h3 class="font-display font-extrabold text-lg text-slate-900 mt-1">${escapeHtml(p.namaLengkap)}</h3>
+              <p class="text-xs text-slate-500">WA: ${escapeHtml(p.noWhatsapp)} • Jalur ${escapeHtml(p.jalurPendaftaran)}</p>
+            </div>
+            <button type="button" onclick="window.closeModal()" class="text-slate-400 hover:text-slate-700 text-xl font-bold">&times;</button>
+          </div>
+
+          <div class="bg-slate-50 p-3.5 rounded-2xl border border-slate-200 text-xs space-y-1.5">
+            <p><strong>NISN:</strong> ${escapeHtml(p.nisn)} | <strong>TTL:</strong> ${escapeHtml(p.tempatTanggalLahir)}</p>
+            <p><strong>Asal Sekolah:</strong> ${escapeHtml(p.asalSekolah)} | <strong>Peminatan:</strong> ${escapeHtml(p.pilihanJurusan)}</p>
+            <p><strong>Wali:</strong> ${escapeHtml(p.namaWali)} | <strong>Alamat:</strong> ${escapeHtml(p.alamat)}</p>
+            <p class="pt-1">
+              <a href="${escapeHtml(p.linkBerkas)}" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-1 font-bold text-indigo-600 hover:underline">
+                Lihat Folder Berkas Google Drive &nearr;
+              </a>
+            </p>
+          </div>
+
+          <form id="form-verifikasi-admin" onsubmit="window.handleSaveVerification(event, '${escapeHtml(p.ticketId)}')" class="space-y-4">
+            <div>
+              <label class="block text-xs font-bold text-slate-700 mb-1.5">Tetapkan Status Seleksi</label>
+              <select id="verif-status-select" name="statusSeleksi" onchange="window.refreshWaPreview('${escapeHtml(p.ticketId)}')" class="w-full px-4 py-2.5 rounded-xl border border-slate-200 bg-white text-sm font-semibold">
+                <option value="menunggu" ${p.statusSeleksi === "menunggu" ? "selected" : ""}>Menunggu Verifikasi</option>
+                <option value="perlu_perbaikan" ${p.statusSeleksi === "perlu_perbaikan" ? "selected" : ""}>Perlu Perbaikan Berkas</option>
+                <option value="terverifikasi" ${p.statusSeleksi === "terverifikasi" ? "selected" : ""}>Berkas Terverifikasi</option>
+                <option value="lulus" ${p.statusSeleksi === "lulus" ? "selected" : ""}>Lulus Seleksi</option>
+                <option value="tidak_lulus" ${p.statusSeleksi === "tidak_lulus" ? "selected" : ""}>Tidak Lulus</option>
+              </select>
+            </div>
+
+            <div>
+              <label class="block text-xs font-bold text-slate-700 mb-1.5">Catatan Panitia (Tampil di Pelacakan Tiket & WA)</label>
+              <textarea id="verif-catatan-input" name="catatanAdmin" rows="2" oninput="window.refreshWaPreview('${escapeHtml(p.ticketId)}')" class="w-full px-4 py-2.5 rounded-xl border border-slate-200 bg-white text-sm">${escapeHtml(p.catatanAdmin || "")}</textarea>
+            </div>
+
+            <div class="p-3.5 rounded-2xl bg-emerald-50/70 border border-emerald-200 space-y-2">
+              <div class="flex items-center justify-between">
+                <span class="text-xs font-extrabold text-emerald-900 flex items-center gap-1.5">
+                  ${ICONS.whatsapp}
+                  <span>Pratinjau Pesan Notifikasi WhatsApp</span>
+                </span>
+              </div>
+              <textarea id="verif-wa-message" rows="4" class="w-full p-2.5 rounded-xl border border-emerald-200 bg-white text-xs text-slate-700">${escapeHtml(compileWaMessage(state.config.templateWaUpdate, p))}</textarea>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5 pt-1">
+              <button
+                type="submit"
+                name="actionMode"
+                value="save_only"
+                class="py-3 px-4 rounded-2xl bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold transition"
+              >
+                Simpan Status Saja
+              </button>
+              <button
+                type="submit"
+                name="actionMode"
+                value="save_and_wa"
+                class="py-3 px-4 rounded-2xl bg-[#25D366] hover:bg-[#1ebe5d] text-white text-xs font-bold shadow-md inline-flex items-center justify-center gap-1.5 transition"
+              >
+                ${ICONS.whatsapp}
+                <span>${hasGateway ? "Simpan & Kirim Gateway WA" : "Simpan & Buka WhatsApp"}</span>
+              </button>
+            </div>
+          </form>
+        </div>
+      `);
+    };
+
+    window.refreshWaPreview = function (ticketId) {
+      const p = state.pendaftar.find((item) => item.ticketId === ticketId);
+      if (!p) return;
+      const statusVal = document.getElementById("verif-status-select")?.value || p.statusSeleksi;
+      const catatanVal = document.getElementById("verif-catatan-input")?.value || "";
+      const waTextarea = document.getElementById("verif-wa-message");
+      if (waTextarea) {
+        waTextarea.value = compileWaMessage(state.config.templateWaUpdate, {
+          ...p,
+          statusSeleksi: statusVal,
+          catatanAdmin: catatanVal
+        });
+      }
+    };
+
+    window.handleSaveVerification = async function (e, ticketId) {
+      e.preventDefault();
+      const submitter = e.submitter;
+      const actionMode = submitter ? submitter.value : "save_only";
+
+      const p = state.pendaftar.find((item) => item.ticketId === ticketId);
+      if (!p) return;
+
+      const statusSeleksi = document.getElementById("verif-status-select")?.value || p.statusSeleksi;
+      const catatanAdmin = document.getElementById("verif-catatan-input")?.value.trim() || "";
+      const waMessage = document.getElementById("verif-wa-message")?.value.trim() || "";
+      const nowIso = new Date().toISOString();
+      const statusLabel = STATUS_META[statusSeleksi]?.label || statusSeleksi;
+
+      const updatedTimeline = [
+        ...(p.timeline || []),
+        {
+          waktu: nowIso,
+          judul: `Status Diperbarui: ${statusLabel}`,
+          deskripsi: catatanAdmin || `Status seleksi ditetapkan menjadi ${statusLabel}.`,
+          status: statusSeleksi
+        }
+      ];
+
+      const patch = {
+        statusSeleksi,
+        catatanAdmin,
+        timeline: updatedTimeline,
+        updatedAt: nowIso
+      };
+
+      try {
+        if (IS_PREVIEW) {
+          const idx = state.pendaftar.findIndex((item) => item.ticketId === ticketId);
+          if (idx !== -1) {
+            state.pendaftar[idx] = { ...state.pendaftar[idx], ...patch };
+          }
+        } else {
+          await updateDoc(doc(fbDb, "pendaftar", ticketId), patch);
+        }
+
+        if (actionMode === "save_and_wa") {
+          await dispatchWhatsAppNotification(p, statusLabel, waMessage);
+        } else {
+          showToast(`Status ${p.namaLengkap} diperbarui menjadi ${statusLabel}.`, "success");
+        }
+
+        closeModal();
+        renderCurrentView();
+      } catch (err) {
+        console.error("Verifikasi error:", err);
+        showToast("Gagal menyimpan perubahan status verifikasi.", "error");
+      }
+    };
+
+    async function dispatchWhatsAppNotification(pendaftarObj, kategoriNotif, isiPesan) {
+      const phone = normalizeWaPhone(pendaftarObj.noWhatsapp);
+      const nowIso = new Date().toISOString();
+      let metodeKirim = "WhatsApp Web / Direct";
+
+      // Jika Admin mengonfigurasi Webhook WA Gateway (misal Fonnte/Wablas)
+      if (state.config.waGatewayEndpoint && state.config.waApiToken) {
+        try {
+          const res = await fetch(state.config.waGatewayEndpoint, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: state.config.waApiToken
+            },
+            body: JSON.stringify({
+              target: phone,
+              phone: phone,
+              message: isiPesan
+            })
+          });
+          if (res.ok) {
+            metodeKirim = "WA Gateway API";
+            showToast(`Notifikasi WA terkirim otomatis via Gateway ke ${pendaftarObj.namaLengkap}!`, "success");
+          } else {
+            throw new Error("Gateway response not OK");
+          }
+        } catch (err) {
+          // Fallback aman ke WA Web jika browser memblokir CORS atau gateway offline
+          metodeKirim = "WhatsApp Web (Fallback)";
+          window.open(`https://wa.me/${phone}?text=${encodeURIComponent(isiPesan)}`, "_blank", "noopener,noreferrer");
+          showToast("Membuka WhatsApp Web untuk mengirim pesan...", "info");
+        }
+      } else {
+        window.open(`https://wa.me/${phone}?text=${encodeURIComponent(isiPesan)}`, "_blank", "noopener,noreferrer");
+        showToast(`Status disimpan & membuka WhatsApp ke ${pendaftarObj.namaLengkap}.`, "success");
+      }
+
+      const logEntry = {
+        ticketId: pendaftarObj.ticketId,
+        namaPenerima: pendaftarObj.namaLengkap,
+        noWhatsapp: phone,
+        kategoriNotif,
+        isiPesan,
+        metodeKirim,
+        waktuKirim: nowIso
+      };
+
+      if (IS_PREVIEW) {
+        state.waLogs.unshift({ id: `log-${Date.now()}`, ...logEntry });
+      } else {
+        try {
+          await addDoc(collection(fbDb, "log_notifikasi_wa"), logEntry);
+        } catch (e) {
+          console.error("Gagal mencatat log WA:", e);
+        }
+      }
+    }
+
+    // =========================================================================
+    // 17. VIEW 7: PENGATURAN IDENTITAS, LOGO SEKOLAH, DEADLINE & KUOTA (ADMIN)
+    // =========================================================================
+    let tempUploadedLogoDataUrl = null;
+
+    function renderAdminPengaturanView() {
+      const cfg = state.config;
+      const currentLogo = tempUploadedLogoDataUrl !== null ? tempUploadedLogoDataUrl : cfg.logoSekolah;
+
+      return `
+        <div class="max-w-4xl mx-auto space-y-6">
+          <div>
+            <h2 class="font-display font-extrabold text-2xl text-slate-900">Pengaturan Identitas, Logo & Jadwal SPMB</h2>
+            <p class="text-xs sm:text-sm text-slate-500">Perubahan langsung diterapkan ke halaman publik, kartu bukti pendaftaran, dan sistem hitung mundur.</p>
+          </div>
+
+          <form onsubmit="window.handleSaveAdminSettings(event)" class="space-y-6">
+            <!-- KARTU 1: IDENTITAS & UNGGAH LOGO SEKOLAH -->
+            <div class="glass-card rounded-3xl p-6 sm:p-7 shadow-glass space-y-5">
+              <div class="flex items-center gap-3 pb-3 border-b border-slate-100">
+                <div class="w-11 h-11 rounded-2xl bg-gradient-to-br from-indigo-500 to-sky-500 text-white flex items-center justify-center shadow-md">
+                  ${ICONS.school}
+                </div>
+                <div>
+                  <h3 class="font-display font-extrabold text-base text-slate-900">Identitas & Logo Resmi Sekolah</h3>
+                  <p class="text-xs text-slate-500">Unggah logo sekolah (PNG/JPG/WEBP/SVG) untuk ditampilkan di seluruh aplikasi & kartu peserta.</p>
+                </div>
+              </div>
+
+              <!-- Unggah Logo & Pratinjau Real-Time -->
+              <div class="flex flex-col sm:flex-row items-center gap-5 p-4 rounded-2xl bg-slate-50 border border-slate-200/80">
+                <div id="settings-logo-preview" class="w-24 h-24 rounded-2xl bg-gradient-to-br from-indigo-600 to-sky-500 text-white flex items-center justify-center shadow-md overflow-hidden border-2 border-white shrink-0">
+                  ${currentLogo ? `<img src="${escapeHtml(currentLogo)}" alt="Pratinjau Logo" class="w-full h-full object-cover" />` : ICONS.school}
+                </div>
+                <div class="flex-1 text-center sm:text-left space-y-2">
+                  <p class="text-xs font-bold text-slate-800">Logo Sekolah (Otomatis Dioptimalkan)</p>
+                  <p class="text-[11px] text-slate-500">Format PNG transparan atau JPG direkomendasikan. Sistem mengompresi gambar agar ringan disimpan di Firestore.</p>
+                  <div class="flex flex-wrap items-center justify-center sm:justify-start gap-2 pt-1">
+                    <label class="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold cursor-pointer shadow-xs transition">
+                      ${ICONS.upload}
+                      <span>Pilih File Logo</span>
+                      <input type="file" accept="image/png,image/jpeg,image/webp,image/svg+xml" onchange="window.handleLogoFileUpload(event)" class="hidden" />
+                    </label>
+                    ${
+                      currentLogo
+                        ? `<button type="button" onclick="window.handleRemoveLogo()" class="px-3.5 py-2 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-600 text-xs font-bold">Hapus Logo</button>`
+                        : ""
+                    }
+                  </div>
+                </div>
+              </div>
+
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label class="block text-xs font-bold text-slate-700 mb-1.5">Nama Resmi Sekolah *</label>
+                  <input type="text" name="namaSekolah" value="${escapeHtml(cfg.namaSekolah)}" required class="w-full px-4 py-2.5 rounded-xl border border-slate-200 bg-white text-sm" />
+                </div>
+                <div>
+                  <label class="block text-xs font-bold text-slate-700 mb-1.5">NPSN</label>
+                  <input type="text" name="npsn" value="${escapeHtml(cfg.npsn)}" placeholder="2026xxxx" class="w-full px-4 py-2.5 rounded-xl border border-slate-200 bg-white text-sm" />
+                </div>
+                <div class="sm:col-span-2">
+                  <label class="block text-xs font-bold text-slate-700 mb-1.5">Tagline / Slogan SPMB</label>
+                  <input type="text" name="tagline" value="${escapeHtml(cfg.tagline)}" class="w-full px-4 py-2.5 rounded-xl border border-slate-200 bg-white text-sm" />
+                </div>
+                <div class="sm:col-span-2">
+                  <label class="block text-xs font-bold text-slate-700 mb-1.5">Alamat Lengkap Sekolah</label>
+                  <input type="text" name="alamatSekolah" value="${escapeHtml(cfg.alamatSekolah)}" class="w-full px-4 py-2.5 rounded-xl border border-slate-200 bg-white text-sm" />
+                </div>
+                <div>
+                  <label class="block text-xs font-bold text-slate-700 mb-1.5">Nomor WhatsApp Helpdesk Panitia</label>
+                  <input type="tel" name="kontakPanitia" value="${escapeHtml(cfg.kontakPanitia)}" placeholder="628123456789" class="w-full px-4 py-2.5 rounded-xl border border-slate-200 bg-white text-sm" />
+                </div>
+                <div>
+                  <label class="block text-xs font-bold text-slate-700 mb-1.5">Tahun Ajaran</label>
+                  <input type="text" name="tahunAjaran" value="${escapeHtml(cfg.tahunAjaran)}" placeholder="2026/2027" class="w-full px-4 py-2.5 rounded-xl border border-slate-200 bg-white text-sm" />
+                </div>
+                <div>
+                  <label class="block text-xs font-bold text-slate-700 mb-1.5">Nama Ketua Panitia SPMB (Untuk Kartu Peserta)</label>
+                  <input type="text" name="namaKetuaPanitia" value="${escapeHtml(cfg.namaKetuaPanitia)}" class="w-full px-4 py-2.5 rounded-xl border border-slate-200 bg-white text-sm" />
+                </div>
+                <div>
+                  <label class="block text-xs font-bold text-slate-700 mb-1.5">NIP Ketua Panitia</label>
+                  <input type="text" name="nipKetuaPanitia" value="${escapeHtml(cfg.nipKetuaPanitia)}" class="w-full px-4 py-2.5 rounded-xl border border-slate-200 bg-white text-sm" />
+                </div>
+              </div>
+            </div>
+
+            <!-- KARTU 2: PENGATURAN COUNTDOWN DEADLINE & AUTO-CLOSE -->
+            <div class="glass-card rounded-3xl p-6 sm:p-7 shadow-glass space-y-5">
+              <div class="flex items-center gap-3 pb-3 border-b border-slate-100">
+                <div class="w-11 h-11 rounded-2xl bg-gradient-to-br from-amber-500 to-rose-600 text-white flex items-center justify-center shadow-md">
+                  ${ICONS.clock}
+                </div>
+                <div>
+                  <h3 class="font-display font-extrabold text-base text-slate-900">Jadwal Penghitung Mundur & Penguncian Otomatis</h3>
+                  <p class="text-xs text-slate-500">Ketika waktu mencapai deadline di bawah, formulir pendaftaran otomatis tertutup.</p>
+                </div>
+              </div>
+
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label class="block text-xs font-bold text-slate-700 mb-1.5">Saklar Status Pendaftaran</label>
+                  <select name="statusBuka" class="w-full px-4 py-2.5 rounded-xl border border-slate-200 bg-white text-sm font-bold">
+                    <option value="true" ${cfg.statusBuka ? "selected" : ""}>DIBUKA (Mengikuti Countdown Deadline)</option>
+                    <option value="false" ${!cfg.statusBuka ? "selected" : ""}>DITUTUP MANUAL SEKARANG</option>
+                  </select>
+                </div>
+                <div>
+                  <label class="block text-xs font-bold text-slate-700 mb-1.5">Batas Akhir Pendaftaran (Deadline)</label>
+                  <input type="datetime-local" id="settings-deadline-input" name="deadlinePendaftaran" value="${toDatetimeLocalValue(cfg.deadlinePendaftaran)}" class="w-full px-4 py-2.5 rounded-xl border border-slate-200 bg-white text-sm" />
+                  <div class="flex flex-wrap gap-1.5 mt-1.5">
+                    <button type="button" onclick="window.setQuickDeadline(3)" class="px-2 py-0.5 rounded bg-indigo-50 text-indigo-700 text-[10px] font-bold hover:bg-indigo-100">+3 Hari</button>
+                    <button type="button" onclick="window.setQuickDeadline(-1)" class="px-2 py-0.5 rounded bg-rose-50 text-rose-700 text-[10px] font-bold hover:bg-rose-100">Simulasikan Habis</button>
+                  </div>
+                </div>
+                <div class="sm:col-span-2">
+                  <label class="block text-xs font-bold text-slate-700 mb-1.5">Pesan Pengumuman Saat Pendaftaran Ditutup</label>
+                  <textarea name="pesanTutup" rows="2" class="w-full px-4 py-2.5 rounded-xl border border-slate-200 bg-white text-sm">${escapeHtml(cfg.pesanTutup)}</textarea>
+                </div>
+              </div>
+            </div>
+
+            <!-- KARTU 3: KUOTA PER JALUR -->
+            <div class="glass-card rounded-3xl p-6 sm:p-7 shadow-glass space-y-4">
+              <h3 class="font-display font-extrabold text-base text-slate-900">Daya Tampung / Kuota per Jalur</h3>
+              <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
+                <div>
+                  <label class="block text-xs font-bold text-indigo-700 mb-1">Kuota Zonasi</label>
+                  <input type="number" min="0" name="kuotaZonasi" value="${Number(cfg.kuotaZonasi) || 0}" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 bg-white text-sm font-bold" />
+                </div>
+                <div>
+                  <label class="block text-xs font-bold text-violet-700 mb-1">Kuota Prestasi</label>
+                  <input type="number" min="0" name="kuotaPrestasi" value="${Number(cfg.kuotaPrestasi) || 0}" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 bg-white text-sm font-bold" />
+                </div>
+                <div>
+                  <label class="block text-xs font-bold text-emerald-700 mb-1">Kuota Afirmasi</label>
+                  <input type="number" min="0" name="kuotaAfirmasi" value="${Number(cfg.kuotaAfirmasi) || 0}" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 bg-white text-sm font-bold" />
+                </div>
+                <div>
+                  <label class="block text-xs font-bold text-amber-700 mb-1">Kuota Mutasi</label>
+                  <input type="number" min="0" name="kuotaMutasi" value="${Number(cfg.kuotaMutasi) || 0}" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 bg-white text-sm font-bold" />
+                </div>
+              </div>
+            </div>
+
+            <!-- KARTU 4: TEMPLATE & GATEWAY NOTIFIKASI WHATSAPP -->
+            <div class="glass-card rounded-3xl p-6 sm:p-7 shadow-glass space-y-4">
+              <div class="flex items-center gap-3 pb-2 border-b border-slate-100">
+                <div class="w-10 h-10 rounded-2xl bg-emerald-500 text-white flex items-center justify-center shadow-sm">
+                  ${ICONS.whatsapp}
+                </div>
+                <div>
+                  <h3 class="font-display font-extrabold text-base text-slate-900">Template Pesan & Gateway WhatsApp</h3>
+                  <p class="text-xs text-slate-500">Variabel didukung: <code>{nama}</code>, <code>{tiket}</code>, <code>{pin}</code>, <code>{jalur}</code>, <code>{status}</code>, <code>{catatan}</code>, <code>{sekolah}</code></p>
+                </div>
+              </div>
+
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label class="block text-xs font-bold text-slate-700 mb-1.5">Template WA Bukti Pendaftaran Baru</label>
+                  <textarea name="templateWaDaftar" rows="4" class="w-full p-3 rounded-xl border border-slate-200 bg-white text-xs">${escapeHtml(cfg.templateWaDaftar)}</textarea>
+                </div>
+                <div>
+                  <label class="block text-xs font-bold text-slate-700 mb-1.5">Template WA Pembaruan Status Verifikasi</label>
+                  <textarea name="templateWaUpdate" rows="4" class="w-full p-3 rounded-xl border border-slate-200 bg-white text-xs">${escapeHtml(cfg.templateWaUpdate)}</textarea>
+                </div>
+                <div>
+                  <label class="block text-xs font-bold text-slate-700 mb-1.5">Endpoint Webhook WA Gateway (Opsional)</label>
+                  <input type="url" name="waGatewayEndpoint" value="${escapeHtml(cfg.waGatewayEndpoint)}" placeholder="https://api.fonnte.com/send" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 bg-white text-xs" />
+                </div>
+                <div>
+                  <label class="block text-xs font-bold text-slate-700 mb-1.5">API Token WA Gateway (Opsional)</label>
+                  <input type="text" name="waApiToken" value="${escapeHtml(cfg.waApiToken)}" placeholder="Token API Gateway Anda" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 bg-white text-xs" />
+                </div>
+              </div>
+            </div>
+
+            <div class="flex justify-end">
+              <button type="submit" id="btn-save-settings" class="px-8 py-3.5 rounded-2xl bg-gradient-to-r from-indigo-600 to-sky-500 hover:from-indigo-700 hover:to-sky-600 text-white font-bold text-sm shadow-lg shadow-indigo-500/25 transition">
+                Simpan Seluruh Pengaturan SPMB
+              </button>
+            </div>
+          </form>
+        </div>
+      `;
+    }
+
+    // Kompresi otomatis file logo sekolah agar ringan disimpan di Firestore (< 100KB)
+    window.handleLogoFileUpload = function (e) {
+      const file = e.target.files && e.target.files[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = function (ev) {
+        const rawResult = ev.target.result;
+        if (file.type === "image/svg+xml") {
+          tempUploadedLogoDataUrl = rawResult;
+          updateLogoPreviewBox(rawResult);
+          showToast("Logo SVG siap disimpan!", "success");
+          return;
+        }
+
+        const img = new Image();
+        img.onload = function () {
+          const maxDim = 220;
+          let w = img.width;
+          let h = img.height;
+          if (w > maxDim || h > maxDim) {
+            if (w > h) {
+              h = Math.round((h * maxDim) / w);
+              w = maxDim;
+            } else {
+              w = Math.round((w * maxDim) / h);
+              h = maxDim;
+            }
+          }
+          const canvas = document.createElement("canvas");
+          canvas.width = w;
+          canvas.height = h;
+          const ctx = canvas.getContext("2d");
+          ctx.drawImage(img, 0, 0, w, h);
+          const compressed = canvas.toDataURL("image/png", 0.88);
+          tempUploadedLogoDataUrl = compressed;
+          updateLogoPreviewBox(compressed);
+          showToast("Logo sekolah berhasil dioptimalkan & siap disimpan.", "success");
+        };
+        img.src = rawResult;
+      };
+      reader.readAsDataURL(file);
+    };
+
+    window.handleRemoveLogo = function () {
+      tempUploadedLogoDataUrl = "";
+      updateLogoPreviewBox("");
+      showToast("Logo ditandai untuk dihapus. Klik Simpan Pengaturan.", "info");
+    };
+
+    function updateLogoPreviewBox(src) {
+      const box = document.getElementById("settings-logo-preview");
+      if (!box) return;
+      box.innerHTML = src
+        ? `<img src="${escapeHtml(src)}" alt="Pratinjau Logo" class="w-full h-full object-cover" />`
+        : ICONS.school;
+    }
+
+    window.setQuickDeadline = function (daysOffset) {
+      const input = document.getElementById("settings-deadline-input");
+      if (!input) return;
+      const target = new Date(Date.now() + daysOffset * 24 * 60 * 60 * 1000);
+      input.value = toDatetimeLocalValue(target.toISOString());
+    };
+
+    window.handleSaveAdminSettings = async function (e) {
+      e.preventDefault();
+      const fd = new FormData(e.target);
+      const rawDeadline = String(fd.get("deadlinePendaftaran") || "");
+      const isoDeadline = rawDeadline ? new Date(rawDeadline).toISOString() : "";
+
+      const finalLogo =
+        tempUploadedLogoDataUrl !== null
+          ? tempUploadedLogoDataUrl
+          : state.config.logoSekolah;
+
+      const updatedConfig = {
+        logoSekolah: finalLogo,
+        namaSekolah: String(fd.get("namaSekolah") || "").trim(),
+        npsn: String(fd.get("npsn") || "").trim(),
+        tagline: String(fd.get("tagline") || "").trim(),
+        alamatSekolah: String(fd.get("alamatSekolah") || "").trim(),
+        kontakPanitia: normalizeWaPhone(fd.get("kontakPanitia")),
+        tahunAjaran: String(fd.get("tahunAjaran") || "").trim(),
+        namaKetuaPanitia: String(fd.get("namaKetuaPanitia") || "").trim(),
+        nipKetuaPanitia: String(fd.get("nipKetuaPanitia") || "").trim(),
+        statusBuka: fd.get("statusBuka") === "true",
+        deadlinePendaftaran: isoDeadline,
+        pesanTutup: String(fd.get("pesanTutup") || "").trim(),
+        kuotaZonasi: Math.max(0, Number(fd.get("kuotaZonasi")) || 0),
+        kuotaPrestasi: Math.max(0, Number(fd.get("kuotaPrestasi")) || 0),
+        kuotaAfirmasi: Math.max(0, Number(fd.get("kuotaAfirmasi")) || 0),
+        kuotaMutasi: Math.max(0, Number(fd.get("kuotaMutasi")) || 0),
+        templateWaDaftar: String(fd.get("templateWaDaftar") || ""),
+        templateWaUpdate: String(fd.get("templateWaUpdate") || ""),
+        waGatewayEndpoint: String(fd.get("waGatewayEndpoint") || "").trim(),
+        waApiToken: String(fd.get("waApiToken") || "").trim()
+      };
+
+      const btn = document.getElementById("btn-save-settings");
+      if (btn) {
+        btn.disabled = true;
+        btn.textContent = "Menyimpan...";
+      }
+
+      try {
+        if (IS_PREVIEW) {
+          state.config = updatedConfig;
+        } else {
+          await setDoc(doc(fbDb, "pengaturan_spmb", "config_utama"), updatedConfig, { merge: true });
+          state.config = updatedConfig;
+        }
+        tempUploadedLogoDataUrl = null;
+        updateCountdownState();
+        renderChrome();
+        renderCurrentView();
+        showToast("Identitas sekolah, logo, jadwal, dan kuota berhasil disimpan!", "success");
+      } catch (err) {
+        console.error("Gagal simpan pengaturan:", err);
+        showToast("Gagal menyimpan pengaturan ke Firestore.", "error");
+      } finally {
+        if (btn) {
+          btn.disabled = false;
+          btn.textContent = "Simpan Seluruh Pengaturan SPMB";
+        }
+      }
+    };
+
+    // =========================================================================
+    // 18. MODAL HELPER & BOOTSTRAP AWAL
+    // =========================================================================
+    function openModal(htmlContent) {
+      const modal = document.getElementById("modal-container");
+      if (!modal) return;
+      modal.innerHTML = htmlContent;
+      modal.classList.remove("hidden");
+      modal.classList.add("flex");
+    }
+
+    window.closeModal = function () {
+      const modal = document.getElementById("modal-container");
+      if (!modal) return;
+      modal.classList.add("hidden");
+      modal.classList.remove("flex");
+      modal.innerHTML = "";
+    };
+
+    // Tutup modal saat klik area backdrop gelap
+    document.getElementById("modal-container")?.addEventListener("click", (e) => {
+      if (e.target.id === "modal-container") {
+        window.closeModal();
+      }
+    });
+
+    // Render Perdana
+    updateCountdownState();
+    renderChrome();
+    renderCurrentView();
+  </script>
+</body>
+</html>
